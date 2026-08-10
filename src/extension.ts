@@ -17,14 +17,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const disposableDownload = vscode.commands.registerCommand('neuralforge.downloadTrialArtifacts', async () => {
 		// Mock logic for downloading artifacts via MCP
-		const runId = await vscode.window.showInputBox({ prompt: 'Enter the MLflow Run ID' });
-		if (runId) {
-			vscode.window.showInformationMessage(`Downloading artifacts for trial ${runId} via MCP...`);
-			// TODO: Call MCP download_mlflow_trial_artifacts tool here
+		const studyId = await vscode.window.showInputBox({ prompt: 'Enter the NeuralForge Study ID (from the YAML)' });
+		if (studyId) {
+			vscode.window.showInformationMessage(`Downloading all trial artifacts for study ${studyId} via MCP...`);
+			// TODO: Call MCP download_mlflow_study_artifacts tool here
 			// Once downloaded, prompt user to save the ZIP file
-			vscode.window.showSaveDialog({ filters: { 'ZIP files': ['zip'] }, defaultUri: vscode.Uri.file(`artifacts_${runId}.zip`) }).then(uri => {
+			vscode.window.showSaveDialog({ filters: { 'ZIP files': ['zip'] }, defaultUri: vscode.Uri.file(`study_artifacts_${studyId}.zip`) }).then(uri => {
 				if (uri) {
-					vscode.window.showInformationMessage(`Artifacts saved to ${uri.fsPath}`);
+					vscode.window.showInformationMessage(`Study artifacts saved to ${uri.fsPath}`);
 				}
 			});
 		}
