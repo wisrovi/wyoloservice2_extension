@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "neuralforge-mcp": {
+      "command": "python3",
+      "args": ["-m", "wyoloservice2_mcp.server"]
+    }
+  }
+}
