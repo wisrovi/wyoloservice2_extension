@@ -1,10 +1,15 @@
 import * as vscode from 'vscode';
+import { ClusterTreeProvider } from './clusterTreeProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "neuralforge" is now active!');
 
+	const clusterProvider = new ClusterTreeProvider();
+	vscode.window.registerTreeDataProvider('neuralforgeCluster', clusterProvider);
+
 	const disposableCluster = vscode.commands.registerCommand('neuralforge.viewClusterStatus', () => {
-		vscode.window.showInformationMessage('Cluster Status: Active (1 Manager, 3 Invokers)');
+		clusterProvider.refresh();
+		vscode.window.showInformationMessage('Cluster Status refreshed.');
 	});
 
 	const disposableLaunch = vscode.commands.registerCommand('neuralforge.launchTraining', () => {
