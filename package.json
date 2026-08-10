@@ -28,6 +28,10 @@
       {
         "command": "neuralforge.downloadTrialArtifacts",
         "title": "NeuralForge: Download Trial Artifacts (ZIP)"
+      },
+      {
+        "command": "neuralforge.createConfigWizard",
+        "title": "NeuralForge: Create Training Config (Wizard)"
       }
     ],
     "viewsContainers": {

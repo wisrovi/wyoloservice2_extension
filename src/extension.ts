@@ -35,7 +35,12 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	context.subscriptions.push(disposableCluster, disposableLaunch, disposableReport, disposableDownload);
+	const disposableWizard = vscode.commands.registerCommand('neuralforge.createConfigWizard', () => {
+		const { showYamlWizard } = require('./yamlWizard');
+		showYamlWizard(context);
+	});
+
+	context.subscriptions.push(disposableCluster, disposableLaunch, disposableReport, disposableDownload, disposableWizard);
 }
 
 // This method is called when your extension is deactivated
