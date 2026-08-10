@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this software for academic or research purposes, please cite it as below and notify the author."
+authors:
+  - family-names: "Rodriguez Villamizar"
+    given-names: "William Steve"
+    alias: "wisrovi rodriguez"
+title: "AI Ecosystem Repo"
+date-released: 2026-08-07
