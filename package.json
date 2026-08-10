@@ -2,7 +2,7 @@
   "name": "neuralforge",
   "displayName": "NeuralForge Extension",
   "description": "VSCode extension for the NeuralForge train_service2 ecosystem",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "wisrovi",
   "repository": {
     "type": "git",
@@ -38,6 +38,41 @@
       {
         "command": "neuralforge.createConfigWizard",
         "title": "NeuralForge: Create Training Config (Wizard)"
+      },
+      {
+        "command": "neuralforge.local.viewLogs",
+        "title": "NeuralForge (Local): View Invoker Logs",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.local.runTest",
+        "title": "NeuralForge (Local): Run E2E Test",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.global.viewReport",
+        "title": "NeuralForge (Global): View MLflow Report",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.global.wpipeScaffold",
+        "title": "NeuralForge (Global): Deploy WPipe Scaffolding",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.local.previewEDA",
+        "title": "NeuralForge (Local): Mini-EDA Preview",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.global.celeryDashboard",
+        "title": "NeuralForge (Global): Celery Task Manager",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.global.openCodeChat",
+        "title": "NeuralForge (Global): OpenCode AI Assistant",
+        "category": "NeuralForge"
       }
     ],
     "viewsContainers": {
@@ -53,10 +88,24 @@
       "neuralforge": [
         {
           "id": "neuralforgeCluster",
-          "name": "Cluster Status"
+          "name": "Cluster Status (Global)"
+        },
+        {
+          "id": "neuralforgeArtifacts",
+          "name": "MLflow Artifacts (Global)"
+        },
+        {
+          "id": "neuralforgeLocal",
+          "name": "Invoker Tools (Local)"
         }
       ]
     },
+    "yamlValidation": [
+      {
+        "fileMatch": "*.yaml",
+        "url": "./neuralforge-schema.json"
+      }
+    ],
     "menus": {
       "explorer/context": [
         {
