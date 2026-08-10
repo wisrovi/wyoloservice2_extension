@@ -4,6 +4,10 @@
   "description": "VSCode extension for the NeuralForge train_service2 ecosystem",
   "version": "0.0.1",
   "publisher": "wisrovi",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wisrovi/wyoloservice2_extension.git"
+  },
   "icon": "media/icono.png",
   "engines": {
     "vscode": "^1.125.0"
