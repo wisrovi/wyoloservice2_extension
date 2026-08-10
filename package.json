@@ -3,6 +3,8 @@
   "displayName": "NeuralForge Extension",
   "description": "VSCode extension for the NeuralForge train_service2 ecosystem",
   "version": "0.0.1",
+  "publisher": "wisrovi",
+  "icon": "media/icono.png",
   "engines": {
     "vscode": "^1.125.0"
   },
