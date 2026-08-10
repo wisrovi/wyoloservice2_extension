@@ -15,7 +15,22 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Opening EDA Report...');
 	});
 
-	context.subscriptions.push(disposableCluster, disposableLaunch, disposableReport);
+	const disposableDownload = vscode.commands.registerCommand('neuralforge.downloadTrialArtifacts', async () => {
+		// Mock logic for downloading artifacts via MCP
+		const runId = await vscode.window.showInputBox({ prompt: 'Enter the MLflow Run ID' });
+		if (runId) {
+			vscode.window.showInformationMessage(`Downloading artifacts for trial ${runId} via MCP...`);
+			// TODO: Call MCP download_mlflow_trial_artifacts tool here
+			// Once downloaded, prompt user to save the ZIP file
+			vscode.window.showSaveDialog({ filters: { 'ZIP files': ['zip'] }, defaultUri: vscode.Uri.file(`artifacts_${runId}.zip`) }).then(uri => {
+				if (uri) {
+					vscode.window.showInformationMessage(`Artifacts saved to ${uri.fsPath}`);
+				}
+			});
+		}
+	});
+
+	context.subscriptions.push(disposableCluster, disposableLaunch, disposableReport, disposableDownload);
 }
 
 // This method is called when your extension is deactivated

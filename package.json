@@ -24,6 +24,10 @@
       {
         "command": "neuralforge.viewEDAReport",
         "title": "NeuralForge: View EDA Report"
+      },
+      {
+        "command": "neuralforge.downloadTrialArtifacts",
+        "title": "NeuralForge: Download Trial Artifacts (ZIP)"
       }
     ],
     "viewsContainers": {
