@@ -14,10 +14,43 @@
   "contributes": {
     "commands": [
       {
-        "command": "neuralforge.helloWorld",
-        "title": "Hello World"
+        "command": "neuralforge.viewClusterStatus",
+        "title": "NeuralForge: View Cluster Status"
+      },
+      {
+        "command": "neuralforge.launchTraining",
+        "title": "NeuralForge: Launch Training"
+      },
+      {
+        "command": "neuralforge.viewEDAReport",
+        "title": "NeuralForge: View EDA Report"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "neuralforge",
+          "title": "NeuralForge",
+          "icon": "$(server-environment)"
+        }
+      ]
+    },
+    "views": {
+      "neuralforge": [
+        {
+          "id": "neuralforgeCluster",
+          "name": "Cluster Status"
+        }
+      ]
+    },
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "neuralforge.launchTraining",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
