@@ -75,7 +75,8 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "install:all": "npm run package && npx @vscode/vsce package --no-dependencies && code --install-extension neuralforge-0.0.1.vsix --force && antigravity --install-extension neuralforge-0.0.1.vsix --force"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
