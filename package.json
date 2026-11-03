@@ -2,7 +2,7 @@
   "name": "neuralforge",
   "displayName": "NeuralForge AI: YOLO & Cluster MLOps Suite",
   "description": "Enterprise AI MLOps suite for distributed YOLO26/v8 training, Optuna hyperparameter optimization, real-time Celery/Kubernetes cluster monitoring, Explainable AI (Eigen-CAM heatmaps, Deletion AUC), and MLflow artifact management.",
-  "version": "0.0.9",
+  "version": "0.0.11",
   "publisher": "wirovi",
   "repository": {
     "type": "git",
@@ -39,6 +39,11 @@
       {
         "command": "neuralforge.guidedLaunch",
         "title": "NeuralForge: Open Guided Training Studio (Recommended)",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.createYamlPrompt",
+        "title": "NeuralForge: Create Training Configuration (Prompt Ultra-Lite / Full)",
         "category": "NeuralForge"
       },
       {
