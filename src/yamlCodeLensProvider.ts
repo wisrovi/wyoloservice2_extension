@@ -41,6 +41,15 @@ export class YamlCodeLensProvider implements vscode.CodeLensProvider {
                     arguments: [document.uri]
                 };
                 codeLenses.push(new vscode.CodeLens(range, previewCmd));
+
+                // Lens 3: Pre-flight Dataset Check
+                const validateCmd: vscode.Command = {
+                    title: "$(check) Validate Dataset",
+                    tooltip: "Verify CIFS dataset path and splits before training",
+                    command: "neuralforge.validateDataset",
+                    arguments: [document.uri]
+                };
+                codeLenses.push(new vscode.CodeLens(range, validateCmd));
             }
         }
         return codeLenses;
