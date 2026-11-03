@@ -5,7 +5,7 @@ export function openXaiVisualizer(context: vscode.ExtensionContext, initialStudy
     if (!initialStudyId) {
         vscode.window.showInputBox({
             prompt: 'Enter NeuralForge Study ID to view XAI Heatmaps & Explainability metrics',
-            placeHolder: 'e.g. Test_AREPO_ProtSup_v3 or UUID'
+            placeHolder: 'e.g. study_detect_electronic_v1 or UUID'
         }).then(studyId => {
             if (studyId) {
                 renderXaiPanel(context, studyId.trim());
