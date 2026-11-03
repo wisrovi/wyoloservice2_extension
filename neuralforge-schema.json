@@ -5,34 +5,38 @@
   "properties": {
     "model": {
       "type": "string",
-      "description": "El modelo base a utilizar (ej. yolov8n.pt, yolov8s.pt)",
-      "default": "yolov8n.pt"
+      "description": "The base architecture model (e.g. yolo26n.pt, yolo26s.pt, yolov8n.pt, rt-detr)",
+      "default": "yolo26n.pt"
     },
     "type": {
       "type": "string",
       "enum": ["yolo", "custom"],
-      "description": "Tipo de entrenamiento (usualmente yolo)"
+      "description": "Training engine type (typically yolo)"
     },
     "train": {
       "type": "object",
       "properties": {
         "task": {
           "type": "string",
-          "enum": ["detect", "segment", "classify"],
-          "description": "La tarea a resolver"
+          "enum": ["detect", "segment", "classify", "obb", "pose"],
+          "description": "Target computer vision task"
         },
         "data": {
           "type": "string",
-          "description": "Ruta al archivo .yaml del dataset en el servidor"
+          "description": "Path to dataset YAML file accessible by cluster invokers"
         },
         "epochs": {
           "type": "integer",
           "minimum": 1,
           "default": 100
         },
+        "time": {
+          "type": "number",
+          "description": "Optional max training duration in hours per trial"
+        },
         "batch": {
           "type": "integer",
-          "enum": [8, 16, 32, 64],
+          "enum": [4, 8, 16, 32, 64],
           "default": 16
         },
         "imgsz": {
@@ -42,9 +46,30 @@
       },
       "required": ["task", "data", "epochs"]
     },
+    "post_train": {
+      "type": "object",
+      "description": "Post-training explainability and scientific analysis modules",
+      "properties": {
+        "xai": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate Eigen-CAM / Grad-CAM heatmaps and Deletion AUC fidelity scores"
+        },
+        "adversarial": {
+          "type": "boolean",
+          "default": true,
+          "description": "Evaluate adversarial robustness against FGSM/PGD perturbations"
+        },
+        "latex": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate scientific LaTeX publication tables and reports"
+        }
+      }
+    },
     "sweeper": {
       "type": "object",
-      "description": "Configuración de Optuna (Auto-Tuning)",
+      "description": "Optuna Sweeper v2 Hyperparameter Tuning Configuration",
       "properties": {
         "version": {
           "type": "integer",
@@ -67,6 +92,11 @@
           "enum": ["optuna"],
           "default": "optuna"
         },
+        "sampler": {
+          "type": "string",
+          "enum": ["tpe", "cmaes"],
+          "default": "tpe"
+        },
         "tune": {
           "type": "boolean",
           "default": false
@@ -80,6 +110,14 @@
           "type": "object"
         }
       }
+    },
+    "start_at": {
+      "type": "string",
+      "description": "Optional scheduled start time (HH:MM or ISO timestamp)"
+    },
+    "target_worker": {
+      "type": "string",
+      "description": "Target worker node IP or private queue name (e.g. 192.168.1.68)"
     },
     "metadata": {
       "type": "object",
