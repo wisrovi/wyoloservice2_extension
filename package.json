@@ -2,7 +2,7 @@
   "name": "neuralforge",
   "displayName": "NeuralForge AI: YOLO & Cluster MLOps Suite",
   "description": "Enterprise AI MLOps suite for distributed YOLO26/v8 training, Optuna hyperparameter optimization, real-time Celery/Kubernetes cluster monitoring, Explainable AI (Eigen-CAM heatmaps, Deletion AUC), and MLflow artifact management.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "wirovi",
   "repository": {
     "type": "git",
@@ -36,6 +36,21 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "neuralforge.guidedLaunch",
+        "title": "NeuralForge: Open Guided Training Studio (Recommended)",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.downloadModelWeights",
+        "title": "NeuralForge: Download Best Weights (best.pt) to Workspace",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.refreshAllViews",
+        "title": "NeuralForge: Refresh Studio Views & Active Runs",
+        "category": "NeuralForge"
+      },
       {
         "command": "neuralforge.viewClusterStatus",
         "title": "NeuralForge: Refresh Cluster Telemetry & Node Health",
@@ -219,16 +234,35 @@
     "views": {
       "neuralforge": [
         {
+          "id": "neuralforgeTrainingHub",
+          "name": "🚀 Training Hub (Quick Start)"
+        },
+        {
+          "id": "neuralforgeExperiments",
+          "name": "📋 My Experiments & Runs"
+        },
+        {
+          "id": "neuralforgeGallery",
+          "name": "🏆 Models & Results Gallery"
+        },
+        {
           "id": "neuralforgeCluster",
-          "name": "Cluster Infrastructure & Nodes (Global)"
+          "name": "⚙️ Cluster Infrastructure (Advanced)"
+        },
+        {
+          "id": "neuralforgeClusterAdmin",
+          "name": "⚙️ Cluster Admin (Legacy)",
+          "when": "neuralforge.showLegacyViews"
         },
         {
           "id": "neuralforgeArtifacts",
-          "name": "MLflow Models, XAI & Artifacts (Global)"
+          "name": "📦 Raw Artifacts Explorer (Legacy)",
+          "when": "neuralforge.showLegacyViews"
         },
         {
           "id": "neuralforgeLocal",
-          "name": "Local Development & Invoker Tools"
+          "name": "🛠️ Local Invoker Tools (Legacy)",
+          "when": "neuralforge.showLegacyViews"
         }
       ]
     },
