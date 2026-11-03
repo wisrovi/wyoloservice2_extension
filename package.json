@@ -2,8 +2,8 @@
   "name": "neuralforge",
   "displayName": "NeuralForge AI: YOLO & Cluster MLOps Suite",
   "description": "Enterprise AI MLOps suite for distributed YOLO26/v8 training, Optuna hyperparameter optimization, real-time Celery/Kubernetes cluster monitoring, Explainable AI (Eigen-CAM heatmaps, Deletion AUC), and MLflow artifact management.",
-  "version": "0.0.3",
-  "publisher": "wisrovi",
+  "version": "0.0.5",
+  "publisher": "wirovi",
   "repository": {
     "type": "git",
     "url": "https://github.com/wisrovi/wyoloservice2_extension.git"
@@ -115,6 +115,51 @@
         "command": "neuralforge.global.openCodeChat",
         "title": "NeuralForge (Global): Launch OpenCode AI Assistant Chat",
         "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.submitTraining",
+        "title": "NeuralForge: Submit YAML Training Configuration to Cluster",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.streamLogs",
+        "title": "NeuralForge: Stream Real-Time Training Execution Logs",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.stopLogStreaming",
+        "title": "NeuralForge: Stop Log Streaming Session",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.cancelStudy",
+        "title": "NeuralForge: Abort Running Study / Cancel Task on Cluster",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.viewMetricsCurves",
+        "title": "NeuralForge: Open MLflow Metrics & Loss Curves Explorer",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.validateDataset",
+        "title": "NeuralForge: Pre-flight Validate Dataset Path and Splits",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.triggerBroadcastPull",
+        "title": "NeuralForge: Broadcast Pull Latest Worker Image to All Nodes",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.diagnoseNode",
+        "title": "NeuralForge: Run Deep Diagnostics on Invoker Node",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.pruneNodeDocker",
+        "title": "NeuralForge: Prune Inactive Docker Containers on Node",
+        "category": "NeuralForge"
       }
     ],
     "configuration": {
@@ -134,6 +179,21 @@
           "type": "number",
           "default": 30001,
           "description": "Kubernetes NodePort for the Cluster Admin API service (default 30001)."
+        },
+        "neuralforge.adminHost": {
+          "type": "string",
+          "default": "127.0.0.1",
+          "description": "Host IP or hostname for Cluster Admin API."
+        },
+        "neuralforge.adminUsername": {
+          "type": "string",
+          "default": "wisrovi",
+          "description": "Username for Cluster Admin API authentication."
+        },
+        "neuralforge.adminPassword": {
+          "type": "string",
+          "default": "wyoloservice",
+          "description": "Password for Cluster Admin API authentication."
         },
         "neuralforge.mlflowPort": {
           "type": "number",
