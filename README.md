@@ -7,7 +7,7 @@
 
 # 🚀 NeuralForge Studio: YOLO & Cluster MLOps Suite
 
-[![Version](https://img.shields.io/badge/version-0.0.9-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
+[![Version](https://img.shields.io/badge/version-0.0.11-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
 [![VSCode](https://img.shields.io/badge/VSCode-^1.80.0-informational.svg)](https://code.visualstudio.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Ecosystem](https://img.shields.io/badge/Ecosystem-train__service2-success.svg)](https://github.com/wisrovi)
@@ -129,6 +129,18 @@ The NeuralForge extension is built upon modern IDE, networking, and visualizatio
 * **Fitness Metric Selector (`neuralforge.changeFitnessMetric`):** Click above `fitness:` to select the exact optimization metric (`mAP50-95(B)`, `mAP50(M)`, `accuracy_top1`, etc.).
 * **Interactive CodeLens Bar:** Above the YAML header, click inline actions to launch training on the cluster, preview Mini-EDA annotations, or validate dataset splits.
 * **Live Study State:** Once dispatched, the CodeLens automatically detects `study_id` and displays buttons to view live loss curves, stream container logs, or cancel the run.
+* **Dataset Pre-flight CodeLens:** Displays `$(database) Dataset: <filename> (Pre-flight Audit)` directly over `data:` lines for one-click audit and split validation.
+
+### 3. 🛡️ Fail-Fast Pre-Flight Validation Engine (Rechazo al Vuelo)
+* **Instant Submission Interception:** Intercepts any training dispatch before asking queue questions or allocating cluster resources.
+* **Comprehensive Rejection Rules:**
+  * Rejects empty or corrupt configurations.
+  * Rejects missing or placeholder `model:` fields.
+  * Rejects missing or unconfigured placeholder dataset paths (`<path_to_dataset>`, `TODO`).
+  * Rejects invalid file extensions (non-YAML files like `.txt`, `.png`, `.pt`).
+  * Validates local filesystem paths and verifies presence of `train:` and `val:` splits.
+  * Rejects overly generic paths like bare `/datasets` or `/datasets/data.yaml`.
+* **Actionable Rejection Diagnostics:** Informs the engineer exactly why the training was rejected and provides a 1-click button to jump directly to the offending line in the YAML file.
 
 ---
 
@@ -139,6 +151,7 @@ All features are registered under the `NeuralForge` category in the Command Pale
 | Command ID | Title | Description |
 |---|---|---|
 | `neuralforge.guidedLaunch` | **Open Guided Training Studio (Recommended)** | Opens visual single-page training launcher with presets. |
+| `neuralforge.createYamlPrompt` | **Create Training Configuration (Prompt Ultra-Lite / Full)** | Interactive QuickPick workflow to select between Ultra-Lite and Full YAML styles. |
 | `neuralforge.pickTargetWorkerNode` | **Select Destination GPU Worker Node for YAML** | Interactive QuickPick to choose target worker from live cluster. |
 | `neuralforge.changePriority` | **Toggle Celery Priority Queue (low/medium/high)** | Inline switcher for Celery execution priority in YAML files. |
 | `neuralforge.changeTaskStyle` | **Switch Computer Vision Task Type** | Switches task (`detect`, `segment`, `classify`, `obb`, `pose`) and syncs fitness. |
