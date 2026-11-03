@@ -32,10 +32,10 @@ export class TrainingHubProvider implements vscode.TreeDataProvider<TrainingHubI
             command: 'neuralforge.guidedLaunch',
             title: 'Start New Training'
         };
-        launchItem.tooltip = 'Launch a new YOLO26/v8 training run in 3 simple steps';
+        launchItem.tooltip = 'Configure architecture, dataset, and generate clean live YAML in editor';
         items.push(launchItem);
 
-        // 2. Pre-flight Dataset Check
+        // 2. Pre-flight Dataset Check (reads data: from active YAML)
         const validateItem = new TrainingHubItem(
             '🔍 Check & Validate Dataset Path',
             vscode.TreeItemCollapsibleState.None,
@@ -45,23 +45,10 @@ export class TrainingHubProvider implements vscode.TreeDataProvider<TrainingHubI
             command: 'neuralforge.validateDataset',
             title: 'Validate Dataset'
         };
-        validateItem.tooltip = 'Verify Samba CIFS or local dataset splits and labels before training';
+        validateItem.tooltip = 'Verify Samba CIFS or local dataset splits and labels directly from train.data';
         items.push(validateItem);
 
-        // 3. Advanced Sweeper Wizard
-        const wizardItem = new TrainingHubItem(
-            '⚙️ Advanced Configuration (Optuna Sweeper)',
-            vscode.TreeItemCollapsibleState.None,
-            'settings'
-        );
-        wizardItem.command = {
-            command: 'neuralforge.createConfigWizard',
-            title: 'Advanced YAML Wizard'
-        };
-        wizardItem.tooltip = 'Fine-tune hyperparameter sweeps, scheduling, and custom loss parameters';
-        items.push(wizardItem);
-
-        // 4. Cluster Readiness Status
+        // 3. Cluster Readiness Status
         try {
             const client = ClusterApiClient.getInstance();
             const invokers = await client.fetchInvokers();
