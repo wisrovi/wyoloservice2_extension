@@ -2,7 +2,7 @@
   "name": "neuralforge",
   "displayName": "NeuralForge Extension",
   "description": "VSCode extension for the NeuralForge train_service2 ecosystem",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "wisrovi",
   "repository": {
     "type": "git",
@@ -55,6 +55,26 @@
         "category": "NeuralForge"
       },
       {
+        "command": "neuralforge.viewHeatmaps",
+        "title": "NeuralForge (Global): View XAI Heatmaps & Explainability",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.recommendNode",
+        "title": "NeuralForge (Global): Recommend Best Compute Node",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.estimateDuration",
+        "title": "NeuralForge (Global): Estimate Training Duration",
+        "category": "NeuralForge"
+      },
+      {
+        "command": "neuralforge.downloadSelectiveArtifact",
+        "title": "NeuralForge (Global): Download Selective MLflow Artifact",
+        "category": "NeuralForge"
+      },
+      {
         "command": "neuralforge.global.wpipeScaffold",
         "title": "NeuralForge (Global): Deploy WPipe Scaffolding",
         "category": "NeuralForge"
@@ -75,6 +95,21 @@
         "category": "NeuralForge"
       }
     ],
+    "configuration": {
+      "title": "NeuralForge",
+      "properties": {
+        "neuralforge.controlHost": {
+          "type": "string",
+          "default": "192.168.10.252",
+          "description": "Host address of NeuralForge Manager / Control Server"
+        },
+        "neuralforge.controlPort": {
+          "type": "number",
+          "default": 23442,
+          "description": "Port of the Control Server API"
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -116,7 +151,6 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
@@ -125,7 +159,7 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "install:all": "npm run package && npx @vscode/vsce package --no-dependencies && code --install-extension neuralforge-0.0.1.vsix --force && antigravity --install-extension neuralforge-0.0.1.vsix --force"
+    "install:all": "npm run package && npx @vscode/vsce package --no-dependencies && code --install-extension neuralforge-0.0.3.vsix --force 2>/dev/null || true && antigravity --install-extension neuralforge-0.0.3.vsix --force 2>/dev/null || true"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
