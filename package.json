@@ -1,7 +1,7 @@
 {
   "name": "neuralforge",
-  "displayName": "NeuralForge Extension",
-  "description": "VSCode extension for the NeuralForge train_service2 ecosystem",
+  "displayName": "NeuralForge AI: YOLO & Cluster MLOps Suite",
+  "description": "Enterprise AI MLOps suite for distributed YOLO26/v8 training, Optuna hyperparameter optimization, real-time Celery/Kubernetes cluster monitoring, Explainable AI (Eigen-CAM heatmaps, Deletion AUC), and MLflow artifact management.",
   "version": "0.0.3",
   "publisher": "wisrovi",
   "repository": {
@@ -13,7 +13,24 @@
     "vscode": "^1.80.0"
   },
   "categories": [
+    "Machine Learning",
+    "Programming Languages",
     "Other"
+  ],
+  "keywords": [
+    "yolo",
+    "yolo26",
+    "neuralforge",
+    "mlops",
+    "optuna",
+    "celery",
+    "kubernetes",
+    "xai",
+    "eigen-cam",
+    "grad-cam",
+    "mlflow",
+    "deep-learning",
+    "computer-vision"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
@@ -21,92 +38,112 @@
     "commands": [
       {
         "command": "neuralforge.viewClusterStatus",
-        "title": "NeuralForge: View Cluster Status"
+        "title": "NeuralForge: Refresh Cluster Telemetry & Node Health",
+        "category": "NeuralForge"
       },
       {
         "command": "neuralforge.launchTraining",
-        "title": "NeuralForge: Launch Training"
+        "title": "NeuralForge: Launch Distributed YOLO Training Study",
+        "category": "NeuralForge"
       },
       {
         "command": "neuralforge.viewEDAReport",
-        "title": "NeuralForge: View EDA Report"
+        "title": "NeuralForge: View Exploratory Data Analysis (EDA) Report",
+        "category": "NeuralForge"
       },
       {
         "command": "neuralforge.downloadTrialArtifacts",
-        "title": "NeuralForge: Download Trial Artifacts (ZIP)"
+        "title": "NeuralForge: Download Complete Study Artifacts Bundle (ZIP)",
+        "category": "NeuralForge"
       },
       {
         "command": "neuralforge.createConfigWizard",
-        "title": "NeuralForge: Create Training Config (Wizard)"
+        "title": "NeuralForge: Open YOLO26 / Optuna Sweeper Configuration Wizard",
+        "category": "NeuralForge"
       },
       {
         "command": "neuralforge.local.viewLogs",
-        "title": "NeuralForge (Local): View Invoker Logs",
+        "title": "NeuralForge (Local): Stream Invoker Worker Execution Logs",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.local.runTest",
-        "title": "NeuralForge (Local): Run E2E Test",
+        "title": "NeuralForge (Local): Run End-to-End Invoker Integration Test",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.global.viewReport",
-        "title": "NeuralForge (Global): View MLflow Report",
+        "title": "NeuralForge (Global): View Post-Train MLflow Executive Report",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.viewHeatmaps",
-        "title": "NeuralForge (Global): View XAI Heatmaps & Explainability",
+        "title": "NeuralForge (Global): Open XAI Heatmaps & Explainability Explorer",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.recommendNode",
-        "title": "NeuralForge (Global): Recommend Best Compute Node",
+        "title": "NeuralForge (Global): Query Best Compute Node for VRAM & Load",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.estimateDuration",
-        "title": "NeuralForge (Global): Estimate Training Duration",
+        "title": "NeuralForge (Global): Estimate Study Training Duration",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.downloadSelectiveArtifact",
-        "title": "NeuralForge (Global): Download Selective MLflow Artifact",
+        "title": "NeuralForge (Global): Selectively Download Specific MLflow Artifact",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.global.wpipeScaffold",
-        "title": "NeuralForge (Global): Deploy WPipe Scaffolding",
+        "title": "NeuralForge (Global): Deploy WPipe Modular Pipeline Scaffolding",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.local.previewEDA",
-        "title": "NeuralForge (Local): Mini-EDA Preview",
+        "title": "NeuralForge (Local): Preview Dataset Annotations (Mini-EDA)",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.global.celeryDashboard",
-        "title": "NeuralForge (Global): Celery Task Manager",
+        "title": "NeuralForge (Global): Open Celery Mission Control Dashboard",
         "category": "NeuralForge"
       },
       {
         "command": "neuralforge.global.openCodeChat",
-        "title": "NeuralForge (Global): OpenCode AI Assistant",
+        "title": "NeuralForge (Global): Launch OpenCode AI Assistant Chat",
         "category": "NeuralForge"
       }
     ],
     "configuration": {
-      "title": "NeuralForge",
+      "title": "NeuralForge AI",
       "properties": {
         "neuralforge.controlHost": {
           "type": "string",
           "default": "192.168.10.252",
-          "description": "Host address of NeuralForge Manager / Control Server"
+          "description": "Host IP or hostname of the NeuralForge Manager / Control Server."
         },
         "neuralforge.controlPort": {
           "type": "number",
           "default": 23442,
-          "description": "Port of the Control Server API"
+          "description": "REST API port of the NeuralForge Control Server (default 23442)."
+        },
+        "neuralforge.k8sAdminPort": {
+          "type": "number",
+          "default": 30001,
+          "description": "Kubernetes NodePort for the Cluster Admin API service (default 30001)."
+        },
+        "neuralforge.mlflowPort": {
+          "type": "number",
+          "default": 5000,
+          "description": "Port of the MLflow Tracking Server for artifacts and experiment metrics (default 5000)."
+        },
+        "neuralforge.defaultModel": {
+          "type": "string",
+          "default": "yolo26n.pt",
+          "description": "Default base architecture model for new configuration files."
         }
       }
     },
@@ -114,7 +151,7 @@
       "activitybar": [
         {
           "id": "neuralforge",
-          "title": "NeuralForge",
+          "title": "NeuralForge AI",
           "icon": "$(server-environment)"
         }
       ]
@@ -123,15 +160,15 @@
       "neuralforge": [
         {
           "id": "neuralforgeCluster",
-          "name": "Cluster Status (Global)"
+          "name": "Cluster Infrastructure & Nodes (Global)"
         },
         {
           "id": "neuralforgeArtifacts",
-          "name": "MLflow Artifacts (Global)"
+          "name": "MLflow Models, XAI & Artifacts (Global)"
         },
         {
           "id": "neuralforgeLocal",
-          "name": "Invoker Tools (Local)"
+          "name": "Local Development & Invoker Tools"
         }
       ]
     },
@@ -159,7 +196,7 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "install:all": "npm run package && npx @vscode/vsce package --no-dependencies && code --install-extension neuralforge-0.0.3.vsix --force 2>/dev/null || true && antigravity --install-extension neuralforge-0.0.3.vsix --force 2>/dev/null || true"
+    "install:all": "npm run --prefix . package && npx @vscode/vsce package --no-dependencies && code --install-extension neuralforge-0.0.3.vsix --force 2>/dev/null || true && antigravity --install-extension neuralforge-0.0.3.vsix --force 2>/dev/null || true"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
