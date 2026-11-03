@@ -7,7 +7,7 @@
 
 # 🚀 NeuralForge AI: YOLO & Cluster MLOps Suite
 
-[![Version](https://img.shields.io/badge/version-0.0.3-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
+[![Version](https://img.shields.io/badge/version-0.0.5-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
 [![VSCode](https://img.shields.io/badge/VSCode-^1.80.0-informational.svg)](https://code.visualstudio.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Ecosystem](https://img.shields.io/badge/Ecosystem-train__service2-success.svg)](https://github.com/wisrovi)
@@ -30,6 +30,13 @@ The official enterprise IDE extension for the **train_service2** ecosystem. Desi
 ---
 
 ## 🏛️ Architecture & Data Flow
+
+<p align="center">
+  <img src="media/architecture.png" alt="NeuralForge Architecture & Data Flow" width="100%" />
+</p>
+
+<details>
+<summary><b>🔍 View Mermaid Specification</b></summary>
 
 ```mermaid
 flowchart LR
@@ -68,6 +75,8 @@ flowchart LR
     MLFLOW -.->|Stream Heatmaps & Artifacts| XAI
     CTRL_SRV -.->|Telemetry Stream| DASH
 ```
+
+</details>
 
 ---
 
@@ -117,6 +126,37 @@ Avoid downloading multi-gigabyte ZIP archives containing checkpoints for dozens 
 * **Recommend Node (`neuralforge.recommendNode`):** Queries the Kubernetes scheduler algorithm to identify the optimal worker node based on minimum VRAM requirements and current temperature.
 * **Estimate Duration (`neuralforge.estimateDuration`):** Computes reliable training duration estimates before submitting jobs.
 
+### 6. 🚀 1-Click Training Submission & YAML CodeLens (`neuralforge.submitTraining`)
+No more switching between terminal commands or external web interfaces to launch distributed training:
+* **Interactive CodeLens:** Directly inside any `training.yaml` file, click `$(play) Launch NeuralForge Training` to dispatch the task.
+* **Automatic Study ID Registration:** The cluster response is intercepted, and the unique `study_id` is automatically persisted back into your YAML document.
+* **Multi-Priority Queuing:** Seamlessly select between high, medium, and low Celery priority queues (`gpus_high`, `gpus_medium`, `gpus_low`) or direct worker targeting.
+
+### 7. 📜 Real-Time Live Log Tailer (`neuralforge.streamLogs`)
+Monitor training progression live directly in VSCode:
+* **Live Streaming:** Polls container execution logs every 2.5 seconds into a dedicated `NeuralForge Training Logs` OutputChannel.
+* **Intelligent Terminal Triggers:** Automatically detects job completion (`TRAINING_COMPLETED_SUCCESSFULLY`) or fatal exceptions, closing the stream cleanly.
+
+### 8. ⏹️ Interactive Task Cancellation (`neuralforge.cancelStudy`)
+* Abort divergence or rogue training trials with a single click from the Tasks Tree or Command Palette.
+* Dispatches graceful termination signals directly to Celery invokers and evicts associated Kubernetes pods.
+
+### 9. 📊 Hardware Telemetry Gauges & Physical Node Monitoring
+* Deep hardware metrics for each GPU node: VRAM memory usage bars, GPU core utilization %, operating temperatures (°C), power draw vs TDP wattage, and host CPU/RAM allocations.
+* Administrative shortcuts: Run connectivity diagnostics (`neuralforge.diagnoseNode`) or prune dangling Docker containers on nodes (`neuralforge.pruneNodeDocker`).
+
+### 10. 📈 MLflow & Optuna Metrics Explorer Webview (`neuralforge.viewMetricsCurves`)
+* Comprehensive visualization of training & validation loss curves (`train/box_loss`, `val/box_loss`, `train/cls_loss`).
+* Real-time tracking of accuracy progressions: `metrics/mAP50(B)`, `metrics/mAP50-95(B)`, and `metrics/precision(B)`.
+* Best trial scorecard displaying optimal epoch, validation loss, and model checkpoint status.
+
+### 11. 🛡️ Pre-flight Dataset Health Check (`neuralforge.validateDataset`)
+* Prevents wasted compute by auditing dataset paths (local or remote Samba CIFS) before launching long runs.
+* Audits train/val splits, bounding box normalization, class distribution balance, and `data.yaml` validity.
+
+### 12. 🔄 1-Click Cluster-Wide Docker Pull (`neuralforge.triggerBroadcastPull`)
+* Dispatches a broadcast `force_docker_pull` control command across all active Celery invoker workers (excluding the NAS manager) to ensure all nodes run the latest executor Docker image.
+
 ---
 
 ## ⌨️ Command Palette Reference
@@ -134,6 +174,15 @@ All features are registered under the `NeuralForge` category in the Command Pale
 | `neuralforge.downloadSelectiveArtifact` | **Selectively Download Specific MLflow Artifact** | Surgically retrieves `best.pt`, reports, CAMs, or LaTeX tables. |
 | `neuralforge.downloadTrialArtifacts` | **Download Complete Study Artifacts (ZIP)** | Bundles all trials and checkpoints into a single archive from MLflow. |
 | `neuralforge.launchTraining` | **Launch Distributed YOLO Training Study** | Submits the active configuration YAML to the cluster via MCP. |
+| `neuralforge.submitTraining` | **Submit YAML Training Configuration to Cluster** | Dispatches the YAML configuration directly to Celery/Control Server. |
+| `neuralforge.streamLogs` | **Stream Real-Time Training Execution Logs** | Opens dedicated OutputChannel to tail live worker container logs. |
+| `neuralforge.stopLogStreaming` | **Stop Log Streaming Session** | Terminates active log polling stream. |
+| `neuralforge.cancelStudy` | **Abort Running Study / Cancel Task on Cluster** | Aborts active trial and cancels Celery tasks. |
+| `neuralforge.viewMetricsCurves` | **Open MLflow Metrics & Loss Curves Explorer** | Interactive Webview charting loss curves and mAP50 progressions. |
+| `neuralforge.validateDataset` | **Pre-flight Validate Dataset Path and Splits** | Audits train/val splits and annotations on CIFS/local storage. |
+| `neuralforge.triggerBroadcastPull` | **Broadcast Pull Latest Worker Image to All Nodes** | Forces all Celery GPU invokers to pull the latest worker Docker image. |
+| `neuralforge.diagnoseNode` | **Run Deep Diagnostics on Invoker Node** | Tests socket connectivity and Celery response from worker node. |
+| `neuralforge.pruneNodeDocker` | **Prune Inactive Docker Containers on Node** | Cleans up dangling containers and free disk space on remote node. |
 | `neuralforge.global.viewReport` | **View Post-Train MLflow Executive Report** | Opens the descriptive post-train LLM analysis report. |
 | `neuralforge.local.viewLogs` | **Stream Invoker Worker Execution Logs** | Tails live execution logs from worker executor containers. |
 | `neuralforge.local.runTest` | **Run End-to-End Invoker Integration Test** | Builds local executor and runs validation test. |
