@@ -118,8 +118,28 @@ export function openGuidedLauncher(context: vscode.ExtensionContext) {
 
             const modelChoicesYaml = modelChoices.map(m => `    - ${m}`).join('\n');
 
-            // Standard train_service2 official live YAML format
-            const yamlContent = `model: "${model}"
+            // Format selection: Ultra-Lite (minimal smart defaults) vs Full (Standard Optuna Sweeper)
+            let yamlContent: string;
+            if (message.payload.yamlMode === 'lite' || (!message.payload.isSweeper && message.payload.yamlMode !== 'full')) {
+                // Ultra-Lite Minimal YAML format leveraging platform smart defaults
+                yamlContent = `model: "${model}"
+style: "${task || 'detect'}"
+
+train:
+  data: "${dataset}"
+  epochs: ${epochs || 5}
+  imgsz: ${imgsz || 640}
+
+sweeper:
+  study_name: "${sanitizedStudy}"
+
+metadata:
+  author: "${author || 'William Rodriguez'}"
+  content: "${description || 'Entrenamiento de modelo YOLO con NeuralForge'}"
+`;
+            } else {
+                // Standard train_service2 official live YAML format
+                yamlContent = `model: "${model}"
 type: "yolo"
 task: "${task || 'detect'}"
 
@@ -131,7 +151,6 @@ train:
   optimizer: ${optimizer || 'AdamW'}
 
 sweeper:
-  debug: "192.168.1.68"
   version: 1
   algorithm: optuna
   direction: maximize
@@ -166,6 +185,7 @@ metadata:
   content: "${description || 'Entrenamiento de modelo YOLO con NeuralForge'}"
   documentation: "Configuración generada desde NeuralForge Training Studio Hub"
 `;
+            }
 
             try {
                 fs.writeFileSync(configFilePath, yamlContent, 'utf-8');
@@ -528,8 +548,20 @@ function getGuidedLauncherHtml(settings: any): string {
             <span>⚡ 4. Training Hyperparameters (train & sweeper)</span>
         </div>
 
+        <!-- Mode & Profile Toggle Chips -->
+        <div style="margin-bottom: 14px;">
+            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">YAML Generation Profile:</label>
+            <div class="chips-container" style="margin-bottom: 6px;">
+                <div id="profileLiteChip" class="chip active" onclick="selectYamlProfile('lite')">⚡ Ultra-Lite (Minimal Smart Defaults)</div>
+                <div id="profileFullChip" class="chip" onclick="selectYamlProfile('full')">🔬 Full / Standard (Optuna Sweeper)</div>
+            </div>
+            <div id="profileDesc" style="font-size: 11px; opacity: 0.8; color: var(--accent); margin-bottom: 8px;">
+                ⚡ Ultra-Lite: Generates a clean ~15-line YAML. The GPU cluster automatically infers AutoBatch, task fitness metric, and sweeper defaults.
+            </div>
+        </div>
+
         <!-- Mode Toggle Chips -->
-        <div class="chips-container" style="margin-bottom: 12px;">
+        <div id="sweeperModeContainer" class="chips-container" style="display: none; margin-bottom: 12px;">
             <div id="modeSingleChip" class="chip active" onclick="selectMode('single')">⚡ Single Training Run</div>
             <div id="modeSweeperChip" class="chip" onclick="selectMode('sweeper')">🧪 Optuna Hyperparameter Sweeper</div>
         </div>
@@ -613,6 +645,26 @@ function getGuidedLauncherHtml(settings: any): string {
         let currentFamily = 'yolo26';
         let currentScale = 's';
         let isSweeperMode = false;
+        let currentYamlProfile = 'lite';
+
+        function selectYamlProfile(profile) {
+            currentYamlProfile = profile;
+            document.getElementById('profileLiteChip').className = 'chip' + (profile === 'lite' ? ' active' : '');
+            document.getElementById('profileFullChip').className = 'chip' + (profile === 'full' ? ' active' : '');
+            
+            const desc = document.getElementById('profileDesc');
+            const sweeperContainer = document.getElementById('sweeperModeContainer');
+            
+            if (profile === 'lite') {
+                desc.innerText = '⚡ Ultra-Lite: Generates a clean ~15-line YAML. The GPU cluster automatically infers AutoBatch, task fitness metric, and sweeper defaults.';
+                sweeperContainer.style.display = 'none';
+                selectMode('single');
+            } else {
+                desc.innerText = '🔬 Full / Standard: Full YAML with explicit hyperparameter search_space, Optuna sampler, trial iterations, and hardware tuning.';
+                sweeperContainer.style.display = 'flex';
+                selectMode('sweeper');
+            }
+        }
 
         function updateModelPreview() {
             let modelName = '';
@@ -744,6 +796,7 @@ function getGuidedLauncherHtml(settings: any): string {
                 epochs,
                 imgsz,
                 optimizer,
+                yamlMode: currentYamlProfile,
                 isSweeper: isSweeperMode,
                 sweeperTrials: parseInt(document.getElementById('sweeperTrials').value, 10) || 2,
                 sweeperSampler: document.getElementById('sweeperSampler').value,
