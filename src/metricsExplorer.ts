@@ -169,7 +169,7 @@ function getMetricsExplorerHtml(studyId: string): string {
     </div>
 
     <div class="search-bar">
-        <input type="text" id="studyInput" placeholder="Enter Study ID (e.g. Test_AREPO_ProtSup_v3)" value="${studyId}">
+        <input type="text" id="studyInput" placeholder="Enter Study ID (e.g. study_detect_electronic_v1)" value="${studyId}">
         <button id="fetchBtn" onclick="loadMetrics()">Query MLflow</button>
         <button style="background: #333;" onclick="loadDemoData()">Load Sample Curves</button>
     </div>
