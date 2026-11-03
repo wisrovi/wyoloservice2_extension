@@ -4,6 +4,20 @@ All notable changes to the "neuralforge" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.7] - 2026-11-03
+### Added
+- **Dynamic CV Task Type Selector:** Added support to choose between Object Detection (`detect`), Instance Segmentation (`segment`), Image Classification (`classify`), Oriented Bounding Boxes (`obb`), and Pose Estimation (`pose`), dynamically recomputing official model architecture names and suffixes (`yolo26n-seg.pt`, `yolo26n-cls.pt`, `yolo26n-obb.pt`, `yolo26n-pose.pt`).
+- **Single Run vs. Optuna Sweeper Mode:** Integrated interactive mode selector in Studio Hub allowing users to choose between single-trial runs or multi-trial Optuna Sweepers with configurable trial counts, samplers (`tpe`, `cmaes`), and target metrics.
+- **Persistent Connection & Samba CIFS Settings:** Added collapsible configuration panel in Studio Hub to store and remember Manager API endpoints and remote Samba CIFS storage credentials safely in VS Code preferences.
+- **Dual Launcher Actions:** Added buttons for both `Generate YAML Specification` (opens side-by-side in editor) and `Start Training on Cluster Directly`.
+- **Context-Aware In-Editor YAML CodeLens:** Dynamically detects NeuralForge YAMLs and displays interactive buttons directly in the code editor:
+  - `▷ Launch Training on Cluster`
+  - `▷ View Status & Curves [<study_id>]` *(when active)*
+  - `▤ Tail Logs`
+  - `🛑 Cancel Study`
+  - `👁 Mini-EDA Preview`
+  - `✓ Validate Dataset Splits`
+
 ## [0.0.6] - 2026-11-03
 ### Added
 - **NeuralForge Studio Interface Redesign:** Complete UX overhaul transitioning the extension from a sysadmin-centric console into a human-centric, 3-step ML practitioner studio.
