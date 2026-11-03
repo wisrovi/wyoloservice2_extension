@@ -4,6 +4,19 @@ All notable changes to the "neuralforge" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.6] - 2026-11-03
+### Added
+- **NeuralForge Studio Interface Redesign:** Complete UX overhaul transitioning the extension from a sysadmin-centric console into a human-centric, 3-step ML practitioner studio.
+- **🚀 Training Hub (Quick Start):** Intuitive entry-point view featuring guided launcher, pre-flight dataset checks, and real-time cluster readiness indicators.
+- **Guided Training Studio Launcher (`neuralforge.guidedLaunch`):** Single-screen visual Webview for launching YOLO26/v8 distributed training with presets for datasets (Colorball, Traffic Signs, COCO128), model sizes (Nano, Small, Medium), and training scales (5-epoch quick test vs. 100/300-epoch full runs).
+- **📋 My Experiments & Runs View (`neuralforgeExperiments`):** Dedicated live experiment tracker displaying active and queued studies, with one-click shortcuts to live loss curves, log tailing, and instant graceful cancellation.
+- **🏆 Models & Results Gallery (`neuralforgeGallery`):** Practitioner-centric model hub offering 1-click downloads of trained weights (`best.pt`) directly into the active workspace, XAI Eigen-CAM attention heatmap reviews, and executive reports.
+- **One-Click Workspace Weights Download (`neuralforge.downloadModelWeights`):** Directly saves `models/<study_id>_best.pt` into the workspace root.
+- **Global Studio View Refresh (`neuralforge.refreshAllViews`):** Synchronizes training hub, experiments, gallery, and cluster telemetry simultaneously.
+
+### Changed
+- Reorganized sidebar hierarchy: technical cluster infrastructure, TDP wattage, and socket diagnostics are now neatly collapsed under `⚙️ Cluster Infrastructure (Advanced)`.
+
 ## [0.0.5] - 2026-11-03
 ### Added
 - **1-Click Training Submission:** Submit training YAMLs directly to the cluster from the editor (`neuralforge.submitTraining`, `neuralforge.launchTraining`) with automatic queue priority selection and `study_id` injection.
