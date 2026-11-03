@@ -9,7 +9,7 @@ export class ModelsGalleryProvider implements vscode.TreeDataProvider<GalleryTre
 
     // Default demonstration/known studies if cluster DB is clean
     private knownStudies: string[] = [
-        'Test_AREPO_ProtSup_v3',
+        'study_detect_electronic_v1',
         'yolo26_colorball_run1',
         'traffic_signs_baseline'
     ];
