@@ -6,24 +6,40 @@ import { ClusterApiClient } from './clusterApiClient';
 export async function validateDatasetPath(uri?: vscode.Uri) {
     let datasetPath = '';
 
-    // If invoked with a YAML file URI, attempt to read the 'dataset' field
+    // If invoked with a YAML file URI or if there is an active editor, extract 'data:' or 'dataset:' automatically
+    const editor = vscode.window.activeTextEditor;
+    let content = '';
+
     if (uri && fs.existsSync(uri.fsPath)) {
         try {
-            const content = fs.readFileSync(uri.fsPath, 'utf-8');
-            const match = content.match(/^dataset:\s*["']?([^"'\r\n]+)["']?/m);
-            if (match && match[1]) {
-                datasetPath = match[1].trim();
-            }
+            content = fs.readFileSync(uri.fsPath, 'utf-8');
         } catch {
             // Ignore
         }
+    } else if (editor) {
+        content = editor.document.getText();
     }
 
+    if (content) {
+        // 1. First priority: look for 'data:' under 'train:' or at root
+        const matchData = content.match(/^[ \t]*data:\s*["']?([^"'\r\n#]+)["']?/m);
+        if (matchData && matchData[1]) {
+            datasetPath = matchData[1].trim();
+        } else {
+            // 2. Second priority: look for 'dataset:'
+            const matchDataset = content.match(/^[ \t]*dataset:\s*["']?([^"'\r\n#]+)["']?/m);
+            if (matchDataset && matchDataset[1]) {
+                datasetPath = matchDataset[1].trim();
+            }
+        }
+    }
+
+    // Only prompt the user if datasetPath could not be determined automatically from YAML
     if (!datasetPath) {
         const input = await vscode.window.showInputBox({
             prompt: 'Enter the remote Samba CIFS or local Dataset directory path',
-            placeHolder: '/datasets/clasification/colorball.v8i.multiclass',
-            value: datasetPath || '/datasets/'
+            placeHolder: '/datasets/examples/detection/eletronic_components/data.yaml',
+            value: '/datasets/examples/detection/eletronic_components/data.yaml'
         });
         if (!input) {
             return;
