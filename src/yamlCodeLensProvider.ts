@@ -130,6 +130,22 @@ export class YamlCodeLensProvider implements vscode.CodeLensProvider {
             }));
         }
 
+        // Specific Lens for 'data:' lines: audit and validate dataset on the fly
+        const dataRegex = /^([ \t]*(?:data|dataset):\s*)(["']?)([^"'\r\n#]+)\2/gm;
+        let dataMatch;
+        while ((dataMatch = dataRegex.exec(text)) !== null) {
+            const lineNum = document.positionAt(dataMatch.index).line;
+            const lineRange = new vscode.Range(lineNum, 0, lineNum, 0);
+            const val = dataMatch[3].trim();
+            const filename = val.split('/').pop() || val;
+            codeLenses.push(new vscode.CodeLens(lineRange, {
+                title: `$(database) Dataset: ${filename} (Pre-flight Audit)`,
+                tooltip: "Verify and validate this dataset descriptor on the fly",
+                command: "neuralforge.validateDataset",
+                arguments: [document.uri]
+            }));
+        }
+
         // Specific Lens for 'debug' or 'target_worker' lines
         const workerRegex = /^([ \t]*#?[ \t]*(?:target_worker|target_worker_queue|debug):\s*)(["']?)([^"'\r\n]+)\2/gm;
         let workerMatch;
