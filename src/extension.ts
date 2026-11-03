@@ -85,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!studyId) {
 			studyId = await vscode.window.showInputBox({
 				prompt: 'Enter Study ID to download best.pt weights',
-				value: 'Test_AREPO_ProtSup_v3'
+				value: 'study_detect_electronic_v1'
 			});
 		}
 		if (!studyId) {
@@ -148,7 +148,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const disposableCancel = vscode.commands.registerCommand('neuralforge.cancelStudy', async (studyId?: string) => {
 		if (!studyId) {
 			studyId = await vscode.window.showInputBox({
-				prompt: 'Enter Study ID to cancel on cluster (e.g. Test_AREPO_ProtSup_v3)'
+				prompt: 'Enter Study ID to cancel on cluster (e.g. study_detect_electronic_v1)'
 			});
 		}
 		if (!studyId) {
@@ -181,6 +181,250 @@ export function activate(context: vscode.ExtensionContext) {
 	// Dataset Pre-flight Validation
 	const disposableValidate = vscode.commands.registerCommand('neuralforge.validateDataset', async (uri?: vscode.Uri) => {
 		await validateDatasetPath(uri);
+	});
+
+	// Pick Target Worker Node from YAML CodeLens
+	const disposablePickWorker = vscode.commands.registerCommand('neuralforge.pickTargetWorkerNode', async (uri?: vscode.Uri, lineNumber?: number) => {
+		const editor = vscode.window.activeTextEditor;
+		const doc = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
+		if (!doc) {
+			vscode.window.showErrorMessage('No active YAML configuration document found.');
+			return;
+		}
+
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: 'Querying online GPU nodes from NeuralForge cluster...',
+			cancellable: false
+		}, async () => {
+			const client = ClusterApiClient.getInstance();
+			let invokers: any[] = [];
+			try {
+				invokers = await client.fetchInvokers();
+			} catch (e) {
+				console.error(e);
+			}
+
+			type QuickPickWithIp = vscode.QuickPickItem & { ipValue: string };
+			const items: QuickPickWithIp[] = [
+				{
+					label: '$(sparkle) Auto-Distribute (Any Available GPU)',
+					description: 'Celery automatically targets the least loaded worker node',
+					detail: 'Queue: gpus_medium',
+					ipValue: 'auto'
+				}
+			];
+
+			for (const inv of invokers) {
+				const isOnline = inv.status === 'online';
+				const statusIcon = isOnline ? '$(pass)' : '$(circle-slash)';
+				const gpuModel = inv.physical?.gpu_model || 'NVIDIA GPU';
+				const vram = inv.physical?.gpu_memory_total || '';
+				const temp = inv.physical?.gpu_temp_c ? `${inv.physical.gpu_temp_c}°C` : '';
+				const hostname = inv.hostname || inv.worker_ip;
+				const ip = inv.worker_ip || hostname;
+
+				items.push({
+					label: `${statusIcon} Node: ${ip}`,
+					description: hostname !== ip ? hostname : gpuModel,
+					detail: `${gpuModel} ${vram ? `• ${vram}` : ''} ${temp ? `• ${temp}` : ''} [${inv.status}]`,
+					ipValue: ip
+				});
+			}
+
+			// Add standard known nodes if cluster reports empty
+			if (items.length === 1) {
+				items.push(
+					{ label: '$(server) Node: 192.168.1.68', description: 'RTX 3090 • 24GB', ipValue: '192.168.1.68' },
+					{ label: '$(server) Node: 192.168.1.40', description: 'RTX 4090 • 24GB', ipValue: '192.168.1.40' },
+					{ label: '$(server) Node: 192.168.1.72', description: 'RTX 3090 • 24GB', ipValue: '192.168.1.72' },
+					{ label: '$(server) Node: 192.168.10.252', description: 'NAS Train Service Manager', ipValue: '192.168.10.252' }
+				);
+			}
+
+			const selected = await vscode.window.showQuickPick(items, {
+				placeHolder: 'Select destination GPU invoker worker IP for this YAML training run'
+			});
+
+			if (!selected) {
+				return;
+			}
+
+			const edit = new vscode.WorkspaceEdit();
+			const text = doc.getText();
+			const targetVal = selected.ipValue;
+
+			// 1. Check if sweeper.debug or debug: line exists
+			const regexDebug = /^([ \t]*#?[ \t]*debug:\s*).*$/m;
+			const matchDebug = regexDebug.exec(text);
+
+			if (matchDebug) {
+				const startPos = doc.positionAt(matchDebug.index);
+				const line = doc.lineAt(startPos.line);
+				const indent = matchDebug[1].match(/^[ \t]*/)?.[0] || '  ';
+				const newLine = targetVal === 'auto'
+					? `${indent}# debug: false`
+					: `${indent}debug: "${targetVal}"`;
+				edit.replace(doc.uri, line.range, newLine);
+			} else {
+				// 2. Look for sweeper: section to insert debug: under it
+				const regexSweeper = /^([ \t]*sweeper:\s*)$/m;
+				const matchSweeper = regexSweeper.exec(text);
+				if (matchSweeper) {
+					const pos = doc.positionAt(matchSweeper.index + matchSweeper[0].length);
+					const insertText = targetVal === 'auto' ? `\n  # debug: false` : `\n  debug: "${targetVal}"`;
+					edit.insert(doc.uri, pos, insertText);
+				} else {
+					// 3. Fallback to target_worker
+					const regexWorker = /^([ \t]*target_worker(?:_queue)?:\s*).*$/m;
+					const matchWorker = regexWorker.exec(text);
+					if (matchWorker) {
+						const startPos = doc.positionAt(matchWorker.index);
+						const line = doc.lineAt(startPos.line);
+						const indent = matchWorker[1].match(/^[ \t]*/)?.[0] || '';
+						const newLine = targetVal === 'auto'
+							? `${indent}# target_worker: auto`
+							: `${indent}target_worker: "${targetVal}"`;
+						edit.replace(doc.uri, line.range, newLine);
+					}
+				}
+			}
+
+			await vscode.workspace.applyEdit(edit);
+			vscode.window.showInformationMessage(`✅ Destination worker node updated in YAML to: ${selected.label}`);
+		});
+	});
+
+	// Change Priority in Live YAML
+	const disposableChangePriority = vscode.commands.registerCommand('neuralforge.changePriority', async (uri?: vscode.Uri) => {
+		const editor = vscode.window.activeTextEditor;
+		const doc = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
+		if (!doc) {
+			return;
+		}
+
+		const selected = await vscode.window.showQuickPick([
+			{ label: '$(flame) low', description: 'Low priority / Off-peak (Default)', val: 'low' },
+			{ label: '$(flame) medium', description: 'Standard priority queue', val: 'medium' },
+			{ label: '$(flame) high', description: 'High priority queue (gpus_high)', val: 'high' }
+		], { placeHolder: 'Select Celery Queue Priority for this Training Run' });
+
+		if (!selected) {
+			return;
+		}
+
+		const text = doc.getText();
+		const edit = new vscode.WorkspaceEdit();
+		const regex = /^([ \t]*priority:\s*)(["']?)([^"'\r\n]+)\2/m;
+		const match = regex.exec(text);
+
+		if (match) {
+			const startPos = doc.positionAt(match.index);
+			const line = doc.lineAt(startPos.line);
+			const indent = match[1].match(/^[ \t]*/)?.[0] || '  ';
+			edit.replace(doc.uri, line.range, `${indent}priority: "${selected.val}"`);
+			await vscode.workspace.applyEdit(edit);
+			vscode.window.showInformationMessage(`✅ Priority updated in YAML to: ${selected.val}`);
+		}
+	});
+
+	// Change Task Style (detect, segment, classify, obb, pose) in Live YAML
+	const disposableChangeStyle = vscode.commands.registerCommand('neuralforge.changeTaskStyle', async (uri?: vscode.Uri) => {
+		const editor = vscode.window.activeTextEditor;
+		const doc = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
+		if (!doc) {
+			return;
+		}
+
+		const selected = await vscode.window.showQuickPick([
+			{ label: '🎯 detect', description: 'Object Detection', val: 'detect', fitness: 'metrics/mAP50-95(B)' },
+			{ label: '✂️ segment', description: 'Instance Segmentation', val: 'segment', fitness: 'metrics/mAP50(M)' },
+			{ label: '🏷️ classify', description: 'Image Classification', val: 'classify', fitness: 'metrics/accuracy_top1' },
+			{ label: '📐 obb', description: 'Oriented Bounding Box', val: 'obb', fitness: 'metrics/mAP50-95(B)' },
+			{ label: '🏃 pose', description: 'Pose / Keypoint Estimation', val: 'pose', fitness: 'metrics/mAP50-95(P)' }
+		], { placeHolder: 'Select Computer Vision Task Style' });
+
+		if (!selected) {
+			return;
+		}
+
+		const text = doc.getText();
+		const edit = new vscode.WorkspaceEdit();
+
+		// 1. Update task: line (or legacy style:) or insert after type: "yolo"
+		const regexTask = /^([ \t]*(?:task|style):\s*)(["']?)([^"'\r\n]+)\2/m;
+		const matchTask = regexTask.exec(text);
+
+		if (matchTask) {
+			const startPos = doc.positionAt(matchTask.index);
+			const line = doc.lineAt(startPos.line);
+			const indent = matchTask[1].match(/^[ \t]*/)?.[0] || '';
+			edit.replace(doc.uri, line.range, `${indent}task: "${selected.val}"`);
+		} else {
+			const regexType = /^([ \t]*type:\s*.*)$/m;
+			const matchType = regexType.exec(text);
+			if (matchType) {
+				const pos = doc.positionAt(matchType.index + matchType[0].length);
+				edit.insert(doc.uri, pos, `\ntask: "${selected.val}"`);
+			}
+		}
+
+		// 2. Automatically sync fitness metric to match the new task
+		const regexFitness = /^([ \t]*fitness:\s*)(["']?)([^"'\r\n]+)\2/m;
+		const matchFitness = regexFitness.exec(text);
+		if (matchFitness) {
+			const startPos = doc.positionAt(matchFitness.index);
+			const line = doc.lineAt(startPos.line);
+			const indent = matchFitness[1].match(/^[ \t]*/)?.[0] || '  ';
+			edit.replace(doc.uri, line.range, `${indent}fitness: "${selected.fitness}"`);
+		}
+
+		await vscode.workspace.applyEdit(edit);
+		vscode.window.showInformationMessage(`✅ Task updated to: ${selected.val} (Fitness synchronized to: ${selected.fitness})`);
+	});
+
+	// Change Fitness Metric in Live YAML
+	const disposableChangeFitness = vscode.commands.registerCommand('neuralforge.changeFitnessMetric', async (uri?: vscode.Uri) => {
+		const editor = vscode.window.activeTextEditor;
+		const doc = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
+		if (!doc) {
+			return;
+		}
+
+		const text = doc.getText();
+		const taskMatch = text.match(/(?:task|style):\s*["']?([^"'\r\n]+)["']?/);
+		const currentTask = taskMatch ? taskMatch[1].trim() : 'detect';
+
+		const metrics = [
+			{ label: 'metrics/mAP50-95(B)', description: 'Detection Box mAP [0.50:0.95]' },
+			{ label: 'metrics/mAP50(B)', description: 'Detection Box mAP [0.50]' },
+			{ label: 'metrics/mAP50(M)', description: 'Segmentation Mask mAP [0.50]' },
+			{ label: 'metrics/mAP50-95(M)', description: 'Segmentation Mask mAP [0.50:0.95]' },
+			{ label: 'metrics/accuracy_top1', description: 'Classification Top-1 Accuracy' },
+			{ label: 'metrics/accuracy_top5', description: 'Classification Top-5 Accuracy' },
+			{ label: 'metrics/mAP50-95(P)', description: 'Pose Keypoints mAP [0.50:0.95]' }
+		];
+
+		const selected = await vscode.window.showQuickPick(metrics, {
+			placeHolder: `Select Target Fitness Metric (Current Task: ${currentTask})`
+		});
+
+		if (!selected) {
+			return;
+		}
+
+		const edit = new vscode.WorkspaceEdit();
+		const regexFitness = /^([ \t]*fitness:\s*)(["']?)([^"'\r\n]+)\2/m;
+		const matchFitness = regexFitness.exec(text);
+
+		if (matchFitness) {
+			const startPos = doc.positionAt(matchFitness.index);
+			const line = doc.lineAt(startPos.line);
+			const indent = matchFitness[1].match(/^[ \t]*/)?.[0] || '  ';
+			edit.replace(doc.uri, line.range, `${indent}fitness: "${selected.label}"`);
+			await vscode.workspace.applyEdit(edit);
+			vscode.window.showInformationMessage(`✅ Fitness metric updated to: ${selected.label}`);
+		}
 	});
 
 	// Cluster Broadcast Docker Pull
@@ -289,6 +533,10 @@ export function activate(context: vscode.ExtensionContext) {
 		disposableCancel,
 		disposableMetrics,
 		disposableValidate,
+		disposablePickWorker,
+		disposableChangePriority,
+		disposableChangeStyle,
+		disposableChangeFitness,
 		disposableBroadcastPull,
 		disposableDiagnose,
 		disposablePrune,
