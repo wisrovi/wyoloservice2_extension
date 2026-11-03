@@ -7,7 +7,7 @@
 
 # 🚀 NeuralForge Studio: YOLO & Cluster MLOps Suite
 
-[![Version](https://img.shields.io/badge/version-0.0.6-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
+[![Version](https://img.shields.io/badge/version-0.0.7-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
 [![VSCode](https://img.shields.io/badge/VSCode-^1.80.0-informational.svg)](https://code.visualstudio.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Ecosystem](https://img.shields.io/badge/Ecosystem-train__service2-success.svg)](https://github.com/wisrovi)
@@ -65,9 +65,9 @@ Rather than overwhelming standard practitioners with low-level sysadmin metrics,
 ```
 
 1. **🚀 Training Hub (Quick Start):**
-   - **Guided Studio Launcher (`neuralforge.guidedLaunch`):** A visual single-screen wizard with dataset presets, model size selector (Nano, Small, Medium), and training scale buttons (5-epoch quick test vs. full run).
+   - **Guided Studio Launcher (`neuralforge.guidedLaunch`):** A visual single-screen wizard with dataset presets, dynamic CV task selector (`detect`, `segment`, `classify`, `obb`, `pose`), automatic model naming, Single Run vs. Optuna Sweeper mode, and persistent cluster & Samba CIFS connection storage.
    - **Pre-flight Dataset Validator (`neuralforge.validateDataset`):** Checks train/val folder structure, YOLO label format, and bounding boxes on Samba CIFS or local disks before wasting GPU compute.
-   - **Cluster Health Indicator:** Real-time indicator displaying active GPU nodes ready for allocation.
+   - **Cluster Readiness Status:** Real-time indicator displaying active GPU nodes ready for allocation.
 
 2. **📋 My Experiments & Runs:**
    - **Active Study Tracker:** Live cards for active and queued jobs across the distributed cluster.
@@ -78,7 +78,16 @@ Rather than overwhelming standard practitioners with low-level sysadmin metrics,
    - **Interactive XAI Heatmaps (`neuralforge.viewHeatmaps`):** Visualizes deep feature focus overlays and Deletion AUC fidelity scores.
    - **Evaluation Curves & Reports:** Instant confusion matrix, mAP50 progressions, and downloadable `.docx` executive summaries.
 
-4. **⚙️ Cluster Infrastructure (Advanced):**
+4. **📄 Context-Aware In-Editor YAML CodeLens:**
+   - When any training YAML is opened in the editor, NeuralForge injects interactive buttons directly into your code:
+     - `▷ Launch Training on Cluster`
+     - `▷ View Status & Curves [<study_id>]` *(if launched)*
+     - `▤ Tail Logs`
+     - `🛑 Cancel Study`
+     - `👁 Mini-EDA Preview`
+     - `✓ Validate Dataset Splits`
+
+5. **⚙️ Cluster Infrastructure (Advanced):**
    - Kept neatly collapsed for engineers who need deep hardware telemetry: VRAM consumption gauges, GPU core load %, operating temperatures (°C), power draw vs. TDP wattage, node diagnostics (`neuralforge.diagnoseNode`), and cluster-wide Docker image pulls (`neuralforge.triggerBroadcastPull`).
 
 ---
@@ -97,6 +106,7 @@ flowchart LR
     subgraph IDE_Workspace [VSCode / Antigravity IDE]
         EXT[NeuralForge Studio Extension]
         HUB[Guided Launcher Webview]
+        YAML[In-Editor YAML CodeLens]
         XAI[XAI Heatmaps Webview]
         CURVES[Live SVG Loss Curves]
     end
@@ -119,7 +129,8 @@ flowchart LR
         CIFS[(Samba CIFS Datasets)]
     end
 
-    EXT -->|Launch & Cancel Jobs| CTRL_SRV
+    HUB -->|Generate Specification| YAML
+    YAML -->|Launch & Cancel Jobs| CTRL_SRV
     EXT -->|Recommend Node & Estimate| K8S_API
     CTRL_SRV -->|Queue Jobs| REDIS
     REDIS -->|Dispatch Tasks| Compute_Grid
@@ -150,41 +161,40 @@ The NeuralForge extension is built upon modern IDE, networking, and visualizatio
 ## 🚀 Core Feature Deep Dive
 
 ### 1. 🚀 Guided Training Studio (`neuralforge.guidedLaunch`)
-For daily training tasks, practitioners no longer need to write boilerplate YAML or learn Celery syntax:
-* **Interactive Visual Launcher:** Choose datasets from recent Samba CIFS paths or one-click presets (`Colorball Multiclass`, `Traffic Signs`, `COCO128`).
-* **Architecture Selector:** Instantly pick between **YOLO26 Nano**, **Small**, **Medium**, or baseline YOLOv8.
-* **Scale Buttons:** Fast 5-epoch test run for pipeline validation or full 100/300-epoch convergence run.
-* **Auto-GPU Routing:** Automatically targets the least loaded GPU worker node in the cluster.
+* **Task Type Driven:** Select between **Object Detection** (`detect`), **Instance Segmentation** (`segment`), **Image Classification** (`classify`), **Oriented Bounding Boxes** (`obb`), or **Pose** (`pose`). The model architecture cards automatically update with official suffixes (`yolo26n-seg.pt`, `yolo26n-cls.pt`, etc.).
+* **Single Run vs. Optuna Sweeper:** Toggle between single training runs (quick 5-epoch test vs 100/300 epochs) or automated multi-trial Optuna Sweepers (with TPE / CMA-ES samplers and custom objective metrics).
+* **Dual Action Buttons:**
+  - 📄 **Generate YAML Specification:** Creates the file in your workspace and opens it side-by-side in your editor.
+  - 🚀 **Start Training on Cluster Directly:** Saves the descriptor and dispatches the task to the Celery grid immediately.
+* **Connection & Samba Storage Panel:** Configure and remember your Cluster Manager IP, Port, and remote Samba CIFS credentials without re-entering them every session.
 
-### 2. ⬇️ One-Click Weights Download (`neuralforge.downloadModelWeights`)
+### 2. 📄 Context-Aware YAML CodeLens
+Open any training descriptor YAML in your editor:
+* **Interactive CodeLens Bar:** Directly above your `study_name:` or `model:` definition, click inline actions to launch, preview EDA, or validate dataset splits.
+* **Live Study State:** Once a job is dispatched, the CodeLens automatically detects the `study_id` and displays one-click buttons to view live loss curves, stream container logs, or cancel the run.
+
+### 3. ⬇️ One-Click Weights Download (`neuralforge.downloadModelWeights`)
 When an experiment finishes, you can directly download `best.pt` with a single click in the **Models & Results Gallery**. The file is saved directly into `models/<study_id>_best.pt` within your active workspace folder, immediately ready for inference or mobile deployment.
 
-### 3. 🔬 XAI Heatmaps & Explainability Explorer (`neuralforge.viewHeatmaps`)
-When training finishes, the worker executes a 20-step scientific analysis. The extension provides an inline interactive Webview to:
+### 4. 🔬 XAI Heatmaps & Explainability Explorer (`neuralforge.viewHeatmaps`)
+When training finishes, the worker executes a 20-step scientific analysis:
 * **Visualize Visual Activations:** Inspect **Eigen-CAM** and **Grad-CAM** deep-layer feature activation maps overlaying detected objects from `extras/model_focus/`.
 * **Evaluate Deletion AUC Scores:** Verify fidelity metrics (Area Under the Deletion Curve) ensuring the model focuses on salient semantic features rather than background noise.
 * **Inspect Adversarial Robustness:** Review accuracy degradation under **FGSM** and **PGD** gradient-based adversarial perturbations.
 
-### 4. 📈 MLflow & Optuna Metrics Explorer Webview (`neuralforge.viewMetricsCurves`)
+### 5. 📈 MLflow & Optuna Metrics Explorer Webview (`neuralforge.viewMetricsCurves`)
 * Comprehensive visualization of training & validation loss curves (`train/box_loss`, `val/box_loss`, `train/cls_loss`).
 * Real-time tracking of accuracy progressions: `metrics/mAP50(B)`, `metrics/mAP50-95(B)`, and `metrics/precision(B)`.
 * Best trial scorecard displaying optimal epoch, validation loss, and model checkpoint status.
 
-### 5. 📜 Real-Time Live Log Tailer (`neuralforge.streamLogs`)
+### 6. 📜 Real-Time Live Log Tailer (`neuralforge.streamLogs`)
 Monitor training progression live directly in VSCode:
 * **Live Streaming:** Polls container execution logs every 2.5 seconds into a dedicated `NeuralForge Training Logs` OutputChannel.
 * **Intelligent Terminal Triggers:** Automatically detects job completion (`TRAINING_COMPLETED_SUCCESSFULLY`) or fatal exceptions, closing the stream cleanly.
 
-### 6. ⏹️ Interactive Task Cancellation (`neuralforge.cancelStudy`)
-* Abort divergence or rogue training trials with a single click from the Tasks Tree or Command Palette.
+### 7. ⏹️ Interactive Task Cancellation (`neuralforge.cancelStudy`)
+* Abort divergence or rogue training trials with a single click from the Tasks Tree, in-editor CodeLens, or Command Palette.
 * Dispatches graceful termination signals directly to Celery invokers and evicts associated Kubernetes pods.
-
-### 7. 🛡️ Pre-flight Dataset Health Check (`neuralforge.validateDataset`)
-* Prevents wasted compute by auditing dataset paths (local or remote Samba CIFS) before launching long runs.
-* Audits train/val splits, bounding box normalization, class distribution balance, and `data.yaml` validity.
-
-### 8. 🔄 1-Click Cluster-Wide Docker Pull (`neuralforge.triggerBroadcastPull`)
-* Dispatches a broadcast `force_docker_pull` control command across all active Celery invoker workers (excluding the NAS manager) to ensure all nodes run the latest executor Docker image.
 
 ---
 
@@ -215,12 +225,6 @@ All features are registered under the `NeuralForge` category in the Command Pale
 | `neuralforge.triggerBroadcastPull` | **Broadcast Pull Latest Worker Image to All Nodes** | Forces all Celery GPU invokers to pull the latest worker Docker image. |
 | `neuralforge.diagnoseNode` | **Run Deep Diagnostics on Invoker Node** | Tests socket connectivity and Celery response from worker node. |
 | `neuralforge.pruneNodeDocker` | **Prune Inactive Docker Containers on Node** | Cleans up dangling containers and free disk space on remote node. |
-| `neuralforge.global.viewReport` | **View Post-Train MLflow Executive Report** | Opens the descriptive post-train LLM analysis report. |
-| `neuralforge.local.viewLogs` | **Stream Invoker Worker Execution Logs** | Tails live execution logs from worker executor containers. |
-| `neuralforge.local.runTest` | **Run End-to-End Invoker Integration Test** | Builds local executor and runs validation test. |
-| `neuralforge.global.wpipeScaffold` | **Deploy WPipe Modular Pipeline Scaffolding**| Scaffolds standard WPipe DAG pipelines. |
-| `neuralforge.local.previewEDA` | **Preview Dataset Annotations (Mini-EDA)** | Previews dataset bounding boxes and class distribution. |
-| `neuralforge.global.openCodeChat` | **Launch OpenCode AI Assistant Chat** | Opens interactive AI assistant for training analysis. |
 
 ---
 
@@ -234,7 +238,9 @@ Configure the extension via `Settings > Extensions > NeuralForge AI` or in your 
   "neuralforge.controlPort": 23442,
   "neuralforge.k8sAdminPort": 30001,
   "neuralforge.mlflowPort": 5000,
-  "neuralforge.defaultModel": "yolo26n.pt"
+  "neuralforge.defaultModel": "yolo26n.pt",
+  "neuralforge.sambaHost": "192.168.10.250",
+  "neuralforge.sambaUser": "cifs_worker"
 }
 ```
 
@@ -243,16 +249,25 @@ Configure the extension via `Settings > Extensions > NeuralForge AI` or in your 
 * `neuralforge.k8sAdminPort`: Kubernetes NodePort for the Cluster Admin API service (default: `30001`).
 * `neuralforge.mlflowPort`: Port of the MLflow Tracking Server for artifacts and metrics (default: `5000`).
 * `neuralforge.defaultModel`: Default base model selected when generating new configuration templates.
+* `neuralforge.sambaHost`: Host IP or hostname of the remote Samba CIFS storage server.
+* `neuralforge.sambaUser`: Username for mounting remote Samba CIFS datasets.
 
 ---
 
 ## 🧭 End-to-End Workflow Guide
 
 1. **Verify Cluster Readiness:** Check the green indicator `🟢 Cluster Ready` in **Training Hub (Quick Start)**.
-2. **Launch with Guided Studio:** Click **Start New Training (Guided Launcher)**, select your dataset preset, choose **YOLO26 Small**, and click **Start Training on Cluster**.
-3. **Track Real-Time Progress:** Expand **My Experiments & Runs** to inspect live loss curves and stream container execution logs directly into your editor.
-4. **Analyze Interpretability:** When training finishes, review the model under **Models & Results Gallery** to view Eigen-CAM attention heatmaps and accuracy metrics.
-5. **Export Weights:** Click **⬇️ Download best.pt to Workspace** to save the optimized model weights straight into your project's `models/` directory.
+2. **Configure in Studio Hub:**
+   - Select your Task Type (**Object Detection**, **Instance Segmentation**, **Image Classification**, **OBB**, or **Pose**).
+   - The model architecture cards automatically adapt to the official model weights (`yolo26n-seg.pt`, `yolo26n-cls.pt`, etc.).
+   - Choose between **Single Training Run** or **Optuna Hyperparameter Sweeper**.
+3. **Generate or Dispatch:**
+   - Click **Generate YAML Specification** to open the descriptor in the editor, or **Start Training on Cluster Directly**.
+4. **Interact with In-Editor CodeLens:**
+   - Click inline buttons above your YAML code to tail logs, view live curves, or cancel runaway trials.
+5. **Analyze Interpretability & Export:**
+   - Review **Eigen-CAM** focus heatmaps under **Models & Results Gallery**.
+   - Click **⬇️ Download best.pt to Workspace** to pull the best checkpoint directly into your deployment repository.
 
 ---
 
@@ -271,8 +286,8 @@ npm run --prefix . package
 npx @vscode/vsce package --no-dependencies
 
 # 4. Install in VSCode or Antigravity IDE
-code --install-extension neuralforge-0.0.6.vsix --force
-antigravity --install-extension neuralforge-0.0.6.vsix --force
+code --install-extension neuralforge-0.0.7.vsix --force
+antigravity --install-extension neuralforge-0.0.7.vsix --force
 ```
 
 ---
