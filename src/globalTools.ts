@@ -80,7 +80,7 @@ export function registerGlobalTools(context: vscode.ExtensionContext) {
 
     // Command 5: Selective Artifact Download
     const downloadSelectiveCmd = vscode.commands.registerCommand('neuralforge.downloadSelectiveArtifact', async () => {
-        const studyId = await vscode.window.showInputBox({ prompt: 'Enter Study ID (e.g. Test_AREPO_ProtSup_v3)' });
+        const studyId = await vscode.window.showInputBox({ prompt: 'Enter Study ID (e.g. study_detect_electronic_v1)' });
         if (!studyId) {
             return;
         }
