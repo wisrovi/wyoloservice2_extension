@@ -7,14 +7,14 @@
 
 # 🚀 NeuralForge Studio: YOLO & Cluster MLOps Suite
 
-[![Version](https://img.shields.io/badge/version-0.0.7-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
+[![Version](https://img.shields.io/badge/version-0.0.9-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
 [![VSCode](https://img.shields.io/badge/VSCode-^1.80.0-informational.svg)](https://code.visualstudio.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Ecosystem](https://img.shields.io/badge/Ecosystem-train__service2-success.svg)](https://github.com/wisrovi)
 
 The official enterprise IDE extension for the **train_service2** ecosystem. Designed and architected by **William Rodriguez (Wisrovi)**, **NeuralForge Studio** transforms complex distributed AI infrastructure into a clean, human-centric, 3-step daily workflow for Computer Vision engineers and ML researchers.
 
-Whether running in **VSCode**, **Google Antigravity**, or remote browser **code-server** instances, NeuralForge Studio eliminates DevOps friction: launch next-generation **YOLO26/v8** training runs with intuitive presets, monitor live experiments with real-time loss curves, inspect **Explainable AI (Eigen-CAM)** heatmaps, and download production model checkpoints (`best.pt`) directly into your open workspace with one click.
+Whether running in **VSCode**, **Google Antigravity**, or remote browser **code-server** instances, NeuralForge Studio eliminates DevOps friction: launch next-generation **YOLO26**, **YOLO11**, **YOLOv10**, **YOLOv9**, **YOLOv8**, or **RT-DETR** model training with intuitive presets, inspect live experiments with real-time loss curves, review **Explainable AI (Eigen-CAM)** heatmaps, interact with "Live YAML" (YAML Vivo) in-editor CodeLens controls to dynamically switch target GPU worker nodes, computer vision task styles, optimization metrics, and priority queues, and download production model checkpoints (`best.pt`) directly into your open workspace with one click.
 
 ---
 
@@ -65,7 +65,7 @@ Rather than overwhelming standard practitioners with low-level sysadmin metrics,
 ```
 
 1. **🚀 Training Hub (Quick Start):**
-   - **Guided Studio Launcher (`neuralforge.guidedLaunch`):** A visual single-screen wizard with dataset presets, dynamic CV task selector (`detect`, `segment`, `classify`, `obb`, `pose`), automatic model naming, Single Run vs. Optuna Sweeper mode, and persistent cluster & Samba CIFS connection storage.
+   - **Multi-Generation Studio Launcher (`neuralforge.guidedLaunch`):** Visual single-screen wizard with dataset presets, dynamic CV task selector (`detect`, `segment`, `classify`, `obb`, `pose`), multi-generation model family selector (**YOLO26**, **YOLO11**, **YOLOv10**, **YOLOv9**, **YOLOv8**, **RT-DETR**, or custom `.pt` paths), fully adjustable epochs, batch sizes, image sizes, optimizers, learning rate, and persistent cluster & Samba CIFS credentials.
    - **Pre-flight Dataset Validator (`neuralforge.validateDataset`):** Checks train/val folder structure, YOLO label format, and bounding boxes on Samba CIFS or local disks before wasting GPU compute.
    - **Cluster Readiness Status:** Real-time indicator displaying active GPU nodes ready for allocation.
 
@@ -78,14 +78,14 @@ Rather than overwhelming standard practitioners with low-level sysadmin metrics,
    - **Interactive XAI Heatmaps (`neuralforge.viewHeatmaps`):** Visualizes deep feature focus overlays and Deletion AUC fidelity scores.
    - **Evaluation Curves & Reports:** Instant confusion matrix, mAP50 progressions, and downloadable `.docx` executive summaries.
 
-4. **📄 Context-Aware In-Editor YAML CodeLens:**
-   - When any training YAML is opened in the editor, NeuralForge injects interactive buttons directly into your code:
-     - `▷ Launch Training on Cluster`
-     - `▷ View Status & Curves [<study_id>]` *(if launched)*
-     - `▤ Tail Logs`
-     - `🛑 Cancel Study`
-     - `👁 Mini-EDA Preview`
-     - `✓ Validate Dataset Splits`
+4. **📄 In-Editor Interactive YAML CodeLens:**
+   - NeuralForge injects interactive buttons directly into any training YAML editor:
+     - `▷ Launch Training on Cluster`: Dispatches the file directly to the Central API / Celery Manager.
+     - `▤ Select Target Node / GPU`: Interactive QuickPick querying live cluster nodes (IPs, VRAM, temp, load).
+     - `▤ Target Worker: <node> (Click to Switch Node)`: Directly switches the destination GPU worker in the code.
+     - `▷ View Status & Curves [<study_id>]`: Real-time loss curves once launched.
+     - `▤ Tail Logs`: Worker container stdout tailing.
+     - `🛑 Cancel Study`: Graceful job abortion.
 
 5. **⚙️ Cluster Infrastructure (Advanced):**
    - Kept neatly collapsed for engineers who need deep hardware telemetry: VRAM consumption gauges, GPU core load %, operating temperatures (°C), power draw vs. TDP wattage, node diagnostics (`neuralforge.diagnoseNode`), and cluster-wide Docker image pulls (`neuralforge.triggerBroadcastPull`).
@@ -98,58 +98,13 @@ Rather than overwhelming standard practitioners with low-level sysadmin metrics,
   <img src="media/architecture.png" alt="NeuralForge Architecture & Data Flow" width="100%" />
 </p>
 
-<details>
-<summary><b>🔍 View Mermaid Specification</b></summary>
-
-```mermaid
-flowchart LR
-    subgraph IDE_Workspace [VSCode / Antigravity IDE]
-        EXT[NeuralForge Studio Extension]
-        HUB[Guided Launcher Webview]
-        YAML[In-Editor YAML CodeLens]
-        XAI[XAI Heatmaps Webview]
-        CURVES[Live SVG Loss Curves]
-    end
-
-    subgraph Cluster_Control [Control & Orchestration Layer]
-        K8S_API[K8s Cluster Admin API :30001]
-        CTRL_SRV[Control Server :23442]
-        REDIS[(Redis Broker :23437)]
-    end
-
-    subgraph Compute_Grid [Distributed Compute Grid]
-        INV1[Worker 192.168.1.40 - RTX 4090]
-        INV2[Worker 192.168.1.68 - RTX 3090]
-        INV3[Worker 192.168.1.72 - RTX 3090]
-    end
-
-    subgraph Storage_Artifacts [Artifacts & Storage Layer]
-        MLFLOW[(MLflow Server :5000)]
-        MINIO[(MinIO S3 Buckets)]
-        CIFS[(Samba CIFS Datasets)]
-    end
-
-    HUB -->|Generate Specification| YAML
-    YAML -->|Launch & Cancel Jobs| CTRL_SRV
-    EXT -->|Recommend Node & Estimate| K8S_API
-    CTRL_SRV -->|Queue Jobs| REDIS
-    REDIS -->|Dispatch Tasks| Compute_Grid
-    Compute_Grid -->|Mount Datasets| CIFS
-    Compute_Grid -->|Log XAI, Weights & Reports| MLFLOW
-    Compute_Grid -->|Persist Checkpoints| MINIO
-    MLFLOW -.->|Stream Heatmaps & Weights| XAI
-    CTRL_SRV -.->|Telemetry Stream| CURVES
-```
-
-</details>
-
 ---
 
 ## 🛠️ Key Technologies and Libraries
 
 The NeuralForge extension is built upon modern IDE, networking, and visualization technologies:
 
-- **VSCode Extension API (`^1.80.0`):** Native editor integration providing custom Activity Bar views, hierarchical TreeDataProviders, bidirectional Webview message passing, dynamic CodeLens, and configuration schemas.
+- **VSCode Extension API (`^1.80.0`):** Native editor integration providing custom Activity Bar views, hierarchical TreeDataProviders, bidirectional Webview message passing, dynamic CodeLens, QuickPick node routing, and configuration schemas.
 - **TypeScript (`^6.0.0`):** Strictly-typed codebase delivering strict null checks, clean interfaces, and robust compile-time guarantees across all telemetry providers.
 - **Webpack 5:** Industrial-grade bundling, dead-code elimination, and tree-shaking that compiles all providers and styles into an optimized, self-contained `dist/extension.js` production artifact.
 - **Node.js Asynchronous HTTP Client:** Non-blocking asynchronous network communication interfacing with both the Kubernetes Cluster Admin NodePort (`:30001`) and Celery Control Server REST endpoints (`:23442`).
@@ -160,41 +115,20 @@ The NeuralForge extension is built upon modern IDE, networking, and visualizatio
 
 ## 🚀 Core Feature Deep Dive
 
-### 1. 🚀 Guided Training Studio (`neuralforge.guidedLaunch`)
-* **Task Type Driven:** Select between **Object Detection** (`detect`), **Instance Segmentation** (`segment`), **Image Classification** (`classify`), **Oriented Bounding Boxes** (`obb`), or **Pose** (`pose`). The model architecture cards automatically update with official suffixes (`yolo26n-seg.pt`, `yolo26n-cls.pt`, etc.).
-* **Single Run vs. Optuna Sweeper:** Toggle between single training runs (quick 5-epoch test vs 100/300 epochs) or automated multi-trial Optuna Sweepers (with TPE / CMA-ES samplers and custom objective metrics).
-* **Dual Action Buttons:**
-  - 📄 **Generate YAML Specification:** Creates the file in your workspace and opens it side-by-side in your editor.
-  - 🚀 **Start Training on Cluster Directly:** Saves the descriptor and dispatches the task to the Celery grid immediately.
+### 1. 🚀 Multi-Generation Guided Training Studio (`neuralforge.guidedLaunch`)
+* **Multi-Family & Multi-Task Driven:** Supports **YOLO26**, **YOLO11**, **YOLOv10**, **YOLOv9**, **YOLOv8**, **RT-DETR**, or custom model checkpoints across **Detection**, **Segmentation**, **Classification**, **OBB**, and **Pose**. Weights and suffixes update automatically (`yolo11s-seg.pt`, `yolo26n-cls.pt`, etc.).
+* **Pure & Minimal YAML Generation:** Generates standardized `train_service2` YAML descriptors stripped of boilerplate and unused hyperparameters (`batch`, `patience`, `conf`, `iou`, etc.), focusing cleanly on `data`, `epochs`, `imgsz`, and `optimizer`.
+* **Single Run vs. Optuna Sweeper:** Toggle between single runs or automated multi-trial Optuna Sweepers (with TPE / CMA-ES samplers and custom objective metrics).
+* **Direct "Generate YAML & Open in Editor" Flow:** Creates the official descriptor in your workspace and immediately opens it side-by-side with full "Live YAML" (YAML Vivo) interactive CodeLens active for review before launching.
 * **Connection & Samba Storage Panel:** Configure and remember your Cluster Manager IP, Port, and remote Samba CIFS credentials without re-entering them every session.
 
-### 2. 📄 Context-Aware YAML CodeLens
-Open any training descriptor YAML in your editor:
-* **Interactive CodeLens Bar:** Directly above your `study_name:` or `model:` definition, click inline actions to launch, preview EDA, or validate dataset splits.
-* **Live Study State:** Once a job is dispatched, the CodeLens automatically detects the `study_id` and displays one-click buttons to view live loss curves, stream container logs, or cancel the run.
-
-### 3. ⬇️ One-Click Weights Download (`neuralforge.downloadModelWeights`)
-When an experiment finishes, you can directly download `best.pt` with a single click in the **Models & Results Gallery**. The file is saved directly into `models/<study_id>_best.pt` within your active workspace folder, immediately ready for inference or mobile deployment.
-
-### 4. 🔬 XAI Heatmaps & Explainability Explorer (`neuralforge.viewHeatmaps`)
-When training finishes, the worker executes a 20-step scientific analysis:
-* **Visualize Visual Activations:** Inspect **Eigen-CAM** and **Grad-CAM** deep-layer feature activation maps overlaying detected objects from `extras/model_focus/`.
-* **Evaluate Deletion AUC Scores:** Verify fidelity metrics (Area Under the Deletion Curve) ensuring the model focuses on salient semantic features rather than background noise.
-* **Inspect Adversarial Robustness:** Review accuracy degradation under **FGSM** and **PGD** gradient-based adversarial perturbations.
-
-### 5. 📈 MLflow & Optuna Metrics Explorer Webview (`neuralforge.viewMetricsCurves`)
-* Comprehensive visualization of training & validation loss curves (`train/box_loss`, `val/box_loss`, `train/cls_loss`).
-* Real-time tracking of accuracy progressions: `metrics/mAP50(B)`, `metrics/mAP50-95(B)`, and `metrics/precision(B)`.
-* Best trial scorecard displaying optimal epoch, validation loss, and model checkpoint status.
-
-### 6. 📜 Real-Time Live Log Tailer (`neuralforge.streamLogs`)
-Monitor training progression live directly in VSCode:
-* **Live Streaming:** Polls container execution logs every 2.5 seconds into a dedicated `NeuralForge Training Logs` OutputChannel.
-* **Intelligent Terminal Triggers:** Automatically detects job completion (`TRAINING_COMPLETED_SUCCESSFULLY`) or fatal exceptions, closing the stream cleanly.
-
-### 7. ⏹️ Interactive Task Cancellation (`neuralforge.cancelStudy`)
-* Abort divergence or rogue training trials with a single click from the Tasks Tree, in-editor CodeLens, or Command Palette.
-* Dispatches graceful termination signals directly to Celery invokers and evicts associated Kubernetes pods.
+### 2. 📄 Interactive "Live YAML" (YAML Vivo) CodeLens Engine
+* **Target Worker Switching (`neuralforge.pickTargetWorkerNode`):** Click the inline CodeLens above `debug:` or `target_worker:` to open an interactive QuickPick listing all live cluster invokers with their physical GPUs, free VRAM, and temperatures. Selecting a node automatically rewrites the YAML file in real time.
+* **CV Task Switching (`neuralforge.changeTaskStyle`):** Click above `task:` to switch between `detect`, `segment`, `classify`, `obb`, and `pose`, which automatically synchronizes the target `fitness:` evaluation metric.
+* **Priority Queue Toggling (`neuralforge.changePriority`):** Click above `priority:` to switch the Celery execution queue between `low` (default), `medium`, and `high`.
+* **Fitness Metric Selector (`neuralforge.changeFitnessMetric`):** Click above `fitness:` to select the exact optimization metric (`mAP50-95(B)`, `mAP50(M)`, `accuracy_top1`, etc.).
+* **Interactive CodeLens Bar:** Above the YAML header, click inline actions to launch training on the cluster, preview Mini-EDA annotations, or validate dataset splits.
+* **Live Study State:** Once dispatched, the CodeLens automatically detects `study_id` and displays buttons to view live loss curves, stream container logs, or cancel the run.
 
 ---
 
@@ -205,6 +139,10 @@ All features are registered under the `NeuralForge` category in the Command Pale
 | Command ID | Title | Description |
 |---|---|---|
 | `neuralforge.guidedLaunch` | **Open Guided Training Studio (Recommended)** | Opens visual single-page training launcher with presets. |
+| `neuralforge.pickTargetWorkerNode` | **Select Destination GPU Worker Node for YAML** | Interactive QuickPick to choose target worker from live cluster. |
+| `neuralforge.changePriority` | **Toggle Celery Priority Queue (low/medium/high)** | Inline switcher for Celery execution priority in YAML files. |
+| `neuralforge.changeTaskStyle` | **Switch Computer Vision Task Type** | Switches task (`detect`, `segment`, `classify`, `obb`, `pose`) and syncs fitness. |
+| `neuralforge.changeFitnessMetric` | **Change Target Fitness Optimization Metric** | Changes target evaluation metric in active YAML sweeper. |
 | `neuralforge.downloadModelWeights` | **Download Best Weights (best.pt) to Workspace** | Directly saves `best.pt` into the active workspace's `models/` folder. |
 | `neuralforge.refreshAllViews` | **Refresh Studio Views & Active Runs** | Synchronizes all Studio view trees simultaneously. |
 | `neuralforge.createConfigWizard` | **Create Training Config (Wizard)** | Opens the interactive Webview to generate YOLO26/v8 Sweeper YAMLs. |
@@ -244,50 +182,34 @@ Configure the extension via `Settings > Extensions > NeuralForge AI` or in your 
 }
 ```
 
-* `neuralforge.controlHost`: Host IP or hostname of the Central Manager / Control Server.
-* `neuralforge.controlPort`: REST API port for Celery queue status and node registrations (default: `23442`).
-* `neuralforge.k8sAdminPort`: Kubernetes NodePort for the Cluster Admin API service (default: `30001`).
-* `neuralforge.mlflowPort`: Port of the MLflow Tracking Server for artifacts and metrics (default: `5000`).
-* `neuralforge.defaultModel`: Default base model selected when generating new configuration templates.
-* `neuralforge.sambaHost`: Host IP or hostname of the remote Samba CIFS storage server.
-* `neuralforge.sambaUser`: Username for mounting remote Samba CIFS datasets.
-
 ---
 
 ## 🧭 End-to-End Workflow Guide
 
-1. **Verify Cluster Readiness:** Check the green indicator `🟢 Cluster Ready` in **Training Hub (Quick Start)**.
-2. **Configure in Studio Hub:**
+1. **Configure in Studio Hub:**
    - Select your Task Type (**Object Detection**, **Instance Segmentation**, **Image Classification**, **OBB**, or **Pose**).
-   - The model architecture cards automatically adapt to the official model weights (`yolo26n-seg.pt`, `yolo26n-cls.pt`, etc.).
-   - Choose between **Single Training Run** or **Optuna Hyperparameter Sweeper**.
-3. **Generate or Dispatch:**
-   - Click **Generate YAML Specification** to open the descriptor in the editor, or **Start Training on Cluster Directly**.
-4. **Interact with In-Editor CodeLens:**
-   - Click inline buttons above your YAML code to tail logs, view live curves, or cancel runaway trials.
-5. **Analyze Interpretability & Export:**
-   - Review **Eigen-CAM** focus heatmaps under **Models & Results Gallery**.
-   - Click **⬇️ Download best.pt to Workspace** to pull the best checkpoint directly into your deployment repository.
+   - Select your Model Generation (**YOLO26**, **YOLO11**, **YOLOv10**, **YOLOv9**, **YOLOv8**, **RT-DETR**, or Custom Weights) and Scale (`Nano`, `Small`, `Medium`, `Large`, `X-Large`).
+   - Adjust epochs, batch size, image size, and optimizer as needed.
+2. **Generate and Review YAML:**
+   - Click **`Generate YAML & Open in Editor`**. The YAML opens side-by-side with complete IntelliSense.
+3. **Route Destination Worker with CodeLens:**
+   - Click `▤ Select Target Node / GPU` directly above your YAML code to choose which physical GPU node will execute the job.
+4. **Launch Training:**
+   - Click `▷ Launch Training on Cluster` in the in-editor CodeLens.
+5. **Monitor & Export:**
+   - Click `▷ View Status & Curves` or `▤ Tail Logs` directly from the YAML CodeLens while training runs.
+   - When finished, download `best.pt` with one click from the **Models & Results Gallery**.
 
 ---
 
 ## 📦 Building and Packaging
 
-To compile from source and package into a `.vsix` file:
-
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Compile production bundle with Webpack
 npm run --prefix . package
-
-# 3. Package into .vsix archive
 npx @vscode/vsce package --no-dependencies
-
-# 4. Install in VSCode or Antigravity IDE
-code --install-extension neuralforge-0.0.7.vsix --force
-antigravity --install-extension neuralforge-0.0.7.vsix --force
+code --install-extension neuralforge-0.0.8.vsix --force
+antigravity --install-extension neuralforge-0.0.8.vsix --force
 ```
 
 ---
@@ -295,8 +217,8 @@ antigravity --install-extension neuralforge-0.0.7.vsix --force
 ## 📜 License & Commercial Terms
 
 This project is part of the **train_service2** ecosystem and operates under a dual-licensing model:
-- **Open Source:** AGPLv3 (see [`LICENSE`](LICENSE)). Any derivative work or hosted service modifying this software must disclose source code under AGPLv3.
-- **Commercial:** Enterprise deployments, closed-source integrations, and commercial licensing require an official commercial license. See [`COMMERCIAL.md`](COMMERCIAL.md) or contact the author.
+- **Open Source:** AGPLv3 (see [`LICENSE`](LICENSE)).
+- **Commercial:** Enterprise deployments and closed-source integrations require an official commercial license. See [`COMMERCIAL.md`](COMMERCIAL.md).
 
 ---
 
