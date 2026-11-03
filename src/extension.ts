@@ -505,6 +505,128 @@ export function activate(context: vscode.ExtensionContext) {
 		showYamlWizard(context);
 	});
 
+	const disposableCreateYamlPrompt = vscode.commands.registerCommand('neuralforge.createYamlPrompt', async () => {
+		const modeChoice = await vscode.window.showQuickPick([
+			{
+				label: '$(zap) Ultra-Lite Mode (Minimal Smart Defaults)',
+				description: 'Recommended: Clean ~15-line YAML using cluster smart defaults (AutoBatch, task fitness, sweeper defaults)',
+				mode: 'lite'
+			},
+			{
+				label: '$(beaker) Standard / Full Mode (Optuna Sweeper)',
+				description: 'Complete configuration with explicit search_space, samplers, trial iterations, and hardware constraints',
+				mode: 'full'
+			}
+		], {
+			placeHolder: 'Select YAML Configuration Profile'
+		});
+
+		if (!modeChoice) return;
+
+		const taskChoice = await vscode.window.showQuickPick([
+			{ label: 'Object Detection', task: 'detect' },
+			{ label: 'Instance Segmentation', task: 'segment' },
+			{ label: 'Classification', task: 'classify' },
+			{ label: 'Oriented Bounding Boxes (OBB)', task: 'obb' },
+			{ label: 'Pose Estimation', task: 'pose' }
+		], { placeHolder: 'Select Computer Vision Task' });
+
+		const task = taskChoice ? taskChoice.task : 'detect';
+
+		const modelName = await vscode.window.showInputBox({
+			prompt: 'Enter YOLO model architecture name',
+			value: task === 'segment' ? 'yolov8n-seg.pt' : 'yolo26n.pt'
+		}) || 'yolo26n.pt';
+
+		const datasetPath = await vscode.window.showInputBox({
+			prompt: 'Enter dataset YAML path (on CIFS Samba or storage)',
+			value: '/datasets/project_name/data.yaml'
+		}) || '/datasets/project_name/data.yaml';
+
+		const studyName = await vscode.window.showInputBox({
+			prompt: 'Enter study name identifier',
+			value: `study_${task}_${modelName.replace('.pt', '')}_v1`
+		}) || `study_${task}_${modelName.replace('.pt', '')}_v1`;
+
+		let yamlContent: string;
+		if (modeChoice.mode === 'lite') {
+			yamlContent = `model: "${modelName}"
+style: "${task}"
+
+train:
+  data: "${datasetPath}"
+  epochs: 5
+  imgsz: 640
+
+sweeper:
+  study_name: "${studyName}"
+
+metadata:
+  author: "William Rodriguez"
+  content: "Entrenamiento YOLO con NeuralForge (Ultra-Lite)"
+`;
+		} else {
+			let fitnessMetric = "metrics/mAP50-95(B)";
+			if (task === 'segment') fitnessMetric = "metrics/mAP50-95(M)";
+			else if (task === 'classify') fitnessMetric = "metrics/accuracy_top1";
+			else if (task === 'pose') fitnessMetric = "metrics/mAP50-95(P)";
+
+			yamlContent = `model: "${modelName}"
+type: "yolo"
+task: "${task}"
+
+train:
+  data: "${datasetPath}"
+  epochs: 5
+  imgsz: 640
+  device: 0
+  optimizer: AdamW
+
+sweeper:
+  version: 1
+  algorithm: optuna
+  direction: maximize
+  fitness: "${fitnessMetric}"
+  study_name: "${studyName}"
+  sampler: "TPESampler"
+  n_trials: 2
+  priority: "medium"
+
+  search_space:
+    model:
+    - choice
+    - ${modelName}
+    train:
+      imgsz:
+      - choice
+      - 640
+      - 768
+      - 1024
+      lr0:
+      - loguniform
+      - 0.0001
+      - 0.01
+
+extras:
+  gpu:
+    id: 0
+    limit: 0.60
+
+metadata:
+  author: "William Rodriguez"
+  content: "Entrenamiento YOLO con NeuralForge (Standard Sweeper)"
+  documentation: "Configuración generada desde NeuralForge VS Code Extension"
+`;
+		}
+
+		const doc = await vscode.workspace.openTextDocument({
+			content: yamlContent,
+			language: 'yaml'
+		});
+		await vscode.window.showTextDocument(doc);
+		vscode.window.showInformationMessage(`✅ Generated NeuralForge YAML (${modeChoice.mode === 'lite' ? 'Ultra-Lite' : 'Full Standard'}).`);
+	});
+
 	const disposablePreviewEDA = vscode.commands.registerCommand('neuralforge.local.previewEDA', (uri?: vscode.Uri) => {
 		if (uri) {
 			openMiniEDA(context, uri);
@@ -543,6 +665,7 @@ export function activate(context: vscode.ExtensionContext) {
 		disposableReport, 
 		disposableDownload, 
 		disposableWizard,
+		disposableCreateYamlPrompt,
 		disposablePreviewEDA,
 		disposableDashboard,
 		disposableChat
