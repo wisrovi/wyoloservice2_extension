@@ -4,6 +4,21 @@ All notable changes to the "neuralforge" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.5] - 2026-11-03
+### Added
+- **1-Click Training Submission:** Submit training YAMLs directly to the cluster from the editor (`neuralforge.submitTraining`, `neuralforge.launchTraining`) with automatic queue priority selection and `study_id` injection.
+- **Real-Time Live Log Streamer:** Dedicated output channel and polling stream (`neuralforge.streamLogs`) showing real-time executor container stdout, progress bars, and completion detection.
+- **Task & Study Cancellation:** Interactive abort and cancel control (`neuralforge.cancelStudy`) directly from the Tasks tree or command palette.
+- **Physical GPU Telemetry & Hardware Gauges:** Real-time VRAM allocation, GPU core load %, temperature (°C), wattage/TDP, and CPU/RAM display per invoker node in the Cluster tree.
+- **Interactive MLflow Metrics & Loss Curves Explorer:** Standalone responsive Webview (`neuralforge.viewMetricsCurves`) charting training/validation loss curves (`train/box_loss`, `val/box_loss`) and metric progressions (`mAP50`, `mAP50-95`, `precision`).
+- **Dataset Pre-flight Health Check:** Automated directory and split validator (`neuralforge.validateDataset`) checking images, labels, class balances, and `data.yaml` compliance.
+- **Broadcast Docker Pull Synchronization:** One-click cluster-wide command (`neuralforge.triggerBroadcastPull`) dispatching `force_docker_pull` to all active GPU invokers.
+- **Node Diagnostics & Docker Prune:** Remote socket diagnosis and disk cleanup utilities (`neuralforge.diagnoseNode`, `neuralforge.pruneNodeDocker`).
+
+## [0.0.4] - 2026-11-03
+### Changed
+- Rendered architecture flowchart into high-resolution Retina image (`media/architecture.png`) to ensure visual rendering in VS Code Marketplace and extension details tab.
+
 ## [0.0.3] - 2026-11-03
 ### Added
 - **XAI Heatmaps & Explainability Explorer:** Interactive VSCode Webview panel to inspect post-training Eigen-CAM / Grad-CAM visual heatmaps, Deletion AUC scores, and adversarial robustness metrics.
