@@ -4,6 +4,31 @@ All notable changes to the "neuralforge" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.11] - 2026-11-03
+### Added
+- **Fail-Fast Pre-Flight Training Rejection (Rechazo al Vuelo):**
+  - Integrated `validateTrainingPreflight` and `handlePreflightRejection` into `trainingLauncher.ts`: validates training configurations *before* any cluster dispatch, queue selection, or resource allocation.
+  - Automatically detects and rejects invalid configurations:
+    - **Missing Dataset Path:** Rejects configs without `data:` or `dataset:` under `train:` or at root.
+    - **Placeholder Detection:** Intercepts unconfigured placeholders (`<path_to_dataset>`, `TODO`, `YOUR_DATASET`).
+    - **Extension Verification:** Rejects disallowed file types (`.txt`, `.csv`, `.png`, `.jpg`, `.pt`, `.py`) and ensures valid `.yaml`/`.yml` descriptors or directories.
+    - **Local Path Validation:** Checks if local filesystem paths exist on disk and validates `train:` / `val:` splits inside descriptor files.
+    - **Generic Remote Path Detection:** Prevents submission of bare `/datasets` or `/datasets/data.yaml` without project subpaths.
+  - **Actionable Rejection UI:** Displays interactive modal explaining exact rejection reasons and provides one-click `📝 Jump to Problem in YAML` (navigating cursor directly to the offending line) and `🔍 Run Dataset Validator`.
+  - **In-Editor Dataset CodeLens:** Added `$(database) Dataset: <filename> (Pre-flight Audit)` lens directly over `data:` lines in YAML files.
+  - **Automated Docker Testing Suite:** Added unit test suite in `tests/test_preflight_validation.py` with 98% coverage run inside Docker.
+
+## [0.0.10] - 2026-11-03
+### Added
+- **Interactive Dual YAML Generation Mode (Ultra-Lite vs Full/Standard):**
+  - Prompted command `neuralforge.createYamlPrompt`: Prompts user via VS Code QuickPick to select between:
+    - `⚡ Ultra-Lite (Minimal Smart Defaults)`: Clean, compact ~15-line production YAML omitting redundant search spaces and relying on intelligent manager/worker defaults.
+    - `🔬 Full / Standard (Optuna Sweeper)`: Comprehensive YAML configuration with explicit multi-trial Optuna hyperparameter exploration space.
+  - Interactive profile selectors added to both `Guided Training Studio` and `YAML Wizard`:
+    - Visual profile chips (`⚡ Ultra-Lite` vs `🔬 Full / Standard`) to toggle between single-run / minimal defaults and deep sweeper exploration.
+  - CodeLens integration on YAML documents automatically adjusts contextual prompts and execution handlers.
+- **Improved Packaging Configuration:** Added `*.vsix` to `.vscodeignore` preventing redundant recursive archive inclusion.
+
 ## [0.0.9] - 2026-11-03
 ### Added
 - **Interactive "Live YAML" (YAML Vivo) Workflow:**
