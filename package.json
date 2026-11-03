@@ -2,7 +2,7 @@
   "name": "neuralforge",
   "displayName": "NeuralForge AI: YOLO & Cluster MLOps Suite",
   "description": "Enterprise AI MLOps suite for distributed YOLO26/v8 training, Optuna hyperparameter optimization, real-time Celery/Kubernetes cluster monitoring, Explainable AI (Eigen-CAM heatmaps, Deletion AUC), and MLflow artifact management.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "wirovi",
   "repository": {
     "type": "git",
@@ -219,6 +219,16 @@
           "type": "string",
           "default": "yolo26n.pt",
           "description": "Default base architecture model for new configuration files."
+        },
+        "neuralforge.sambaHost": {
+          "type": "string",
+          "default": "192.168.10.250",
+          "description": "Host IP or hostname of the remote Samba CIFS storage server."
+        },
+        "neuralforge.sambaUser": {
+          "type": "string",
+          "default": "cifs_worker",
+          "description": "Username for mounting remote Samba CIFS datasets."
         }
       }
     },
