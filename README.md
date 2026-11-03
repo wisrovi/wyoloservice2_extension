@@ -2,89 +2,216 @@
   <a href="https://linkedin.com/in/wisrovi-rodriguez"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
   <a href="https://wisrovi.dev"><img src="https://img.shields.io/badge/Author-wisrovi.dev-111827?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Portal" /></a>
   <a href="https://orcid.org/0009-0005-0710-1861"><img src="https://img.shields.io/badge/ORCID-0009--0005--0710--1861-A6CE39?style=for-the-badge&logo=orcid&logoColor=white" alt="ORCID" /></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-AGPLv3-yellow.svg?style=for-the-badge" alt="License" /></a>
 </p>
 
-# NeuralForge Extension
+# 🚀 NeuralForge AI: YOLO & Cluster MLOps Suite
 
-![NeuralForge](media/readme.png)
+[![Version](https://img.shields.io/badge/version-0.0.3-blue.svg)](https://github.com/wisrovi/wyoloservice2_extension)
+[![VSCode](https://img.shields.io/badge/VSCode-^1.80.0-informational.svg)](https://code.visualstudio.com/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![Ecosystem](https://img.shields.io/badge/Ecosystem-train__service2-success.svg)](https://github.com/wisrovi)
 
-This is the official VSCode / Antigravity IDE Extension for the **train_service2** ecosystem. It integrates tightly with the NeuralForgeAI cluster through the local MCP Server and Kubernetes Cluster Admin API, allowing you to monitor distributed GPU workers, generate next-generation YOLO26 sweep configurations, inspect Explainable AI (XAI) heatmaps, and selectively download trial artifacts directly inside your editor.
+The official enterprise IDE extension for the **train_service2** ecosystem. Designed and architected by **William Rodriguez (Wisrovi)**, this extension bridges the gap between modern code editors (**VSCode**, **Google Antigravity**) and enterprise distributed training infrastructure. It delivers end-to-end orchestration for next-generation **YOLO26/v8** model training, **Optuna Sweeper v2** hyperparameter tuning, **Explainable AI (XAI)** heatmaps inspection, real-time **Kubernetes & Celery** cluster telemetry, and selective **MLflow** artifact retrieval.
+
+---
+
+## 📖 Table of Contents
+1. [Architecture & Data Flow](#-architecture--data-flow)
+2. [Key Technologies and Libraries](#-key-technologies-and-libraries)
+3. [Core Feature Deep Dive](#-core-feature-deep-dive)
+4. [Command Palette Reference](#-command-palette-reference)
+5. [Configuration & Settings](#-configuration--settings)
+6. [End-to-End Workflow Guide](#-end-to-end-workflow-guide)
+7. [Building and Packaging](#-building-and-packaging)
+8. [License & Commercial Terms](#-license--commercial-terms)
+9. [Author & Official Affiliation](#-author--official-affiliation)
+
+---
+
+## 🏛️ Architecture & Data Flow
+
+```mermaid
+flowchart LR
+    subgraph IDE_Workspace [VSCode / Antigravity IDE]
+        EXT[NeuralForge Extension]
+        XAI[XAI Heatmaps Webview]
+        WIZ[YOLO26 Sweeper Wizard]
+        DASH[Celery Mission Control]
+    end
+
+    subgraph Cluster_Control [Control & Orchestration Layer]
+        K8S_API[K8s Cluster Admin API :30001]
+        CTRL_SRV[Control Server :23442]
+        REDIS[(Redis Broker :23437)]
+    end
+
+    subgraph Compute_Grid [Distributed Compute Grid]
+        INV1[Worker 192.168.1.40 - RTX 4090]
+        INV2[Worker 192.168.1.68 - RTX 3090]
+        INV3[Worker 192.168.1.72 - RTX 3090]
+    end
+
+    subgraph Storage_Artifacts [Artifacts & Storage Layer]
+        MLFLOW[(MLflow Server :5000)]
+        MINIO[(MinIO S3 Buckets)]
+        CIFS[(Samba CIFS Datasets)]
+    end
+
+    EXT -->|Query Telemetry| CTRL_SRV
+    EXT -->|Recommend Node & Estimate| K8S_API
+    CTRL_SRV -->|Queue Jobs| REDIS
+    REDIS -->|Dispatch Tasks| Compute_Grid
+    Compute_Grid -->|Mount Datasets| CIFS
+    Compute_Grid -->|Log XAI, Weights & Reports| MLFLOW
+    Compute_Grid -->|Persist Checkpoints| MINIO
+    MLFLOW -.->|Stream Heatmaps & Artifacts| XAI
+    CTRL_SRV -.->|Telemetry Stream| DASH
+```
 
 ---
 
 ## 🛠️ Key Technologies and Libraries
 
-The NeuralForge extension is built upon modern IDE and web technologies:
+The NeuralForge extension is built upon modern IDE, networking, and visualization technologies:
 
-- **VSCode Extension API (`^1.80.0`):** Native IDE integration including TreeView providers, Webview panels, CodeLens, custom commands, and configuration schemas.
-- **TypeScript (`^6.0.0`):** Strictly-typed codebase ensuring high reliability, maintainability, and seamless compilation.
-- **Webpack 5:** High-performance module bundling and tree-shaking for lean production `.vsix` packaging.
-- **Node.js HTTP Client:** Asynchronous non-blocking communication with the Kubernetes Cluster Admin API and Celery Control Servers.
-- **HTML5 / CSS3 Responsive Webviews:** Interactive, themed user interfaces matching the active VSCode theme for both the XAI Heatmaps Explorer, Configuration Wizard, and Celery Mission Control.
-- **JSON Schema (Draft-07):** Deep YAML IntelliSense and automated validation for YOLO26 training descriptors and Optuna sweeper configurations.
-
----
-
-## 🚀 Key Features
-
-### 1. 🔬 XAI Heatmaps & Explainability Explorer
-Open interactive visual activation maps (`neuralforge.viewHeatmaps`) generated during the post-training pipeline. Visualize deep-layer attention overlays (**Eigen-CAM** / **Grad-CAM**) from `extras/model_focus/`, verify **Deletion AUC fidelity scores**, and review adversarial robustness metrics directly inside your workspace.
-
-### 2. ⚡ Live Cluster & Invoker Monitoring
-The `ClusterTreeProvider` and Celery Mission Control dashboard query real-time Kubernetes cluster telemetry (`/health`, `/workers`, `/tasks`), showing GPU node health, VRAM allocations, active worker queues, and running studies.
-
-### 3. 🎯 Next-Gen YOLO26 Configuration Wizard
-Interactive webview wizard (`neuralforge.createConfigWizard`) supporting:
-- **Model Architectures:** YOLO26 family (`yolo26n.pt`, `yolo26s.pt`, `yolo26m.pt`, `yolo26l.pt`), classic YOLOv8, and RT-DETR.
-- **Multi-Task CV Targets:** Object Detection, Instance Segmentation, Classification, Oriented Bounding Boxes (OBB), and Pose Estimation.
-- **Post-Train Explainability Toggles:** Enable or disable XAI heatmaps, Adversarial testing, and PyLaTeX scientific table exports.
-- **Optuna Sweeper v2:** Configurable samplers (`tpe`, `cmaes`), trial counts, private worker queues, and time-bounded trial caps.
-
-### 4. 📦 Selective MLflow Artifacts Downloader
-Rather than downloading multi-gigabyte ZIP archives containing all trials, surgically download only what you need:
-- `best.pt` (Final model weights)
-- `LLM_Report.docx` / `GLOBAL_RESEARCH_EXPLANATION.md` (Descriptive post-train analysis)
-- `extras/model_focus/` (Eigen-CAM heatmaps)
-- `table_results.tex` (PyLaTeX scientific tables)
-
-### 5. 🤖 Intelligent Node Recommender & Estimator
-Query the Kubernetes cluster scheduler to recommend the optimal compute node based on available VRAM and node temperature, or estimate training time before launching.
+- **VSCode Extension API (`^1.80.0`):** Native editor integration providing custom Activity Bar views, hierarchical TreeDataProviders, bidirectional Webview message passing, dynamic CodeLens, and configuration schemas.
+- **TypeScript (`^6.0.0`):** Strictly-typed codebase delivering strict null checks, clean interfaces, and robust compile-time guarantees across all telemetry providers.
+- **Webpack 5:** Industrial-grade bundling, dead-code elimination, and tree-shaking that compiles all providers and styles into an optimized, self-contained `dist/extension.js` production artifact.
+- **Node.js Asynchronous HTTP Client:** Non-blocking asynchronous network communication interfacing with both the Kubernetes Cluster Admin NodePort (`:30001`) and Celery Control Server REST endpoints (`:23442`).
+- **HTML5 & CSS3 Responsive Webviews:** Hardware-accelerated, theme-adaptive user interfaces adhering to native VSCode design variables (`--vscode-*`) for the XAI Heatmaps Explorer, Configuration Wizard, and Mission Control Dashboard.
+- **JSON Schema (Draft-07):** Schema specification providing automated autocomplete, inline documentation tooltips, and strict linting for YOLO26 training descriptors and Optuna Sweeper v2 configurations.
 
 ---
 
-## ⚙️ Building and Packaging
+## 🚀 Core Feature Deep Dive
 
-To compile and package the extension into a `.vsix` bundle:
+### 1. 🔬 XAI Heatmaps & Explainability Explorer (`neuralforge.viewHeatmaps`)
+Modern computer vision demands interpretability. When training finishes, the worker executes a 20-step scientific analysis. The extension provides an inline interactive Webview to:
+* **Visualize Visual Activations:** Inspect **Eigen-CAM** and **Grad-CAM** deep-layer feature activation maps overlaying detected objects from `extras/model_focus/`.
+* **Evaluate Deletion AUC Scores:** Verify fidelity metrics (Area Under the Deletion Curve) ensuring the model focuses on salient semantic features rather than background noise.
+* **Inspect Adversarial Robustness:** Review accuracy degradation under **FGSM** and **PGD** gradient-based adversarial perturbations.
+* **Direct Actions:** One-click shortcuts to download final model weights (`best.pt`) or open the descriptive post-train executive report.
+
+### 2. ⚡ Live Cluster Telemetry & Celery Mission Control
+Say goodbye to black-box distributed computing. The extension connects directly to live cluster APIs:
+* **Cluster TreeView (`neuralforgeCluster`):** Displays real-time status of the central Manager node (`NAS_Train_service`), individual GPU invoker nodes (e.g. `worker-cima0065d (192.168.1.68) [Active GPU Worker]`), and active/queued Celery tasks.
+* **Celery Mission Control Dashboard (`neuralforge.global.celeryDashboard`):** High-level view showing Redis broker health, total connected clients, GPU worker queue distribution (`gpus_high`, `gpus_medium`, `wyolo_gpu_queue`), and active study progress.
+
+### 3. 🎯 Next-Gen YOLO26 & Optuna Sweeper v2 Wizard (`neuralforge.createConfigWizard`)
+An intuitive, structured wizard that creates production-ready YAML descriptors:
+* **Architectures:** Supports **YOLO26** (`yolo26n.pt`, `yolo26s.pt`, `yolo26m.pt`, `yolo26l.pt`), YOLOv8, and RT-DETR.
+* **Multi-Task CV Tasks:** Object Detection, Instance Segmentation, Image Classification, Oriented Bounding Boxes (**OBB**), and Pose / Keypoints.
+* **Hyperparameter Sweeper (Optuna):** Configurable samplers (**TPE** or **CMA-ES**), direction, trial counts, and automatic metric mapping (e.g. `metrics/mAP50-95(B)`, `metrics/mAP50-95(M)`, `metrics/mAP50-95(P)`).
+* **Scheduling & Private Allocation:** Target specific worker IPs (`target_worker`) and schedule off-peak execution (`start_at: "22:00"`).
+* **Post-Train Module Toggles:** Granular control to enable or disable XAI, Adversarial testing, and PyLaTeX scientific report generation.
+
+### 4. 📦 Selective MLflow Artifacts Downloader (`neuralforge.downloadSelectiveArtifact`)
+Avoid downloading multi-gigabyte ZIP archives containing checkpoints for dozens of unpromising trials. Surgically download only the critical assets:
+* **Best Checkpoint:** `weights/best.pt` directly into your workspace.
+* **Executive Reports:** `report/LLM_Report.docx` or `GLOBAL_RESEARCH_EXPLANATION.md`.
+* **Heatmap Gallery:** `extras/model_focus/` CAM images for presentations and paper figures.
+* **LaTeX Tables:** `latex/table_results.tex` generated via PyLaTeX for scientific publication.
+
+### 5. 🤖 Node Recommender & Training Duration Estimator
+* **Recommend Node (`neuralforge.recommendNode`):** Queries the Kubernetes scheduler algorithm to identify the optimal worker node based on minimum VRAM requirements and current temperature.
+* **Estimate Duration (`neuralforge.estimateDuration`):** Computes reliable training duration estimates before submitting jobs.
+
+---
+
+## ⌨️ Command Palette Reference
+
+All features are registered under the `NeuralForge` category in the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+
+| Command ID | Title | Description |
+|---|---|---|
+| `neuralforge.createConfigWizard` | **Create Training Config (Wizard)** | Opens the interactive Webview to generate YOLO26/v8 Sweeper YAMLs. |
+| `neuralforge.viewHeatmaps` | **View XAI Heatmaps & Explainability** | Launches the XAI Explorer Webview for Eigen-CAM images and Deletion AUC. |
+| `neuralforge.viewClusterStatus` | **Refresh Cluster Telemetry & Node Health** | Forces an immediate refresh of the cluster nodes and queues TreeView. |
+| `neuralforge.global.celeryDashboard` | **Open Celery Mission Control Dashboard** | Displays live cluster overview, broker connections, and active tasks. |
+| `neuralforge.recommendNode` | **Query Best Compute Node for VRAM & Load** | Recommends optimal GPU worker node based on memory headroom. |
+| `neuralforge.estimateDuration` | **Estimate Study Training Duration** | Projects training completion time in hours and minutes. |
+| `neuralforge.downloadSelectiveArtifact` | **Selectively Download Specific MLflow Artifact** | Surgically retrieves `best.pt`, reports, CAMs, or LaTeX tables. |
+| `neuralforge.downloadTrialArtifacts` | **Download Complete Study Artifacts (ZIP)** | Bundles all trials and checkpoints into a single archive from MLflow. |
+| `neuralforge.launchTraining` | **Launch Distributed YOLO Training Study** | Submits the active configuration YAML to the cluster via MCP. |
+| `neuralforge.global.viewReport` | **View Post-Train MLflow Executive Report** | Opens the descriptive post-train LLM analysis report. |
+| `neuralforge.local.viewLogs` | **Stream Invoker Worker Execution Logs** | Tails live execution logs from worker executor containers. |
+| `neuralforge.local.runTest` | **Run End-to-End Invoker Integration Test** | Builds local executor and runs validation test. |
+| `neuralforge.global.wpipeScaffold` | **Deploy WPipe Modular Pipeline Scaffolding**| Scaffolds standard WPipe DAG pipelines. |
+| `neuralforge.local.previewEDA` | **Preview Dataset Annotations (Mini-EDA)** | Previews dataset bounding boxes and class distribution. |
+| `neuralforge.global.openCodeChat` | **Launch OpenCode AI Assistant Chat** | Opens interactive AI assistant for training analysis. |
+
+---
+
+## ⚙️ Configuration & Settings
+
+Configure the extension via `Settings > Extensions > NeuralForge AI` or in your `settings.json`:
+
+```json
+{
+  "neuralforge.controlHost": "192.168.10.252",
+  "neuralforge.controlPort": 23442,
+  "neuralforge.k8sAdminPort": 30001,
+  "neuralforge.mlflowPort": 5000,
+  "neuralforge.defaultModel": "yolo26n.pt"
+}
+```
+
+* `neuralforge.controlHost`: Host IP or hostname of the Central Manager / Control Server.
+* `neuralforge.controlPort`: REST API port for Celery queue status and node registrations (default: `23442`).
+* `neuralforge.k8sAdminPort`: Kubernetes NodePort for the Cluster Admin API service (default: `30001`).
+* `neuralforge.mlflowPort`: Port of the MLflow Tracking Server for artifacts and metrics (default: `5000`).
+* `neuralforge.defaultModel`: Default base model selected when generating new configuration templates.
+
+---
+
+## 🧭 End-to-End Workflow Guide
+
+1. **Verify Cluster Health:** Open the **NeuralForge** Activity Bar tab to view active nodes under `Cluster Infrastructure & Nodes`.
+2. **Generate Configuration:** Execute `NeuralForge: Open YOLO26 / Optuna Sweeper Configuration Wizard`, select your dataset path, architecture, and post-train explainability options, then click **Generate NeuralForge YAML**.
+3. **Inspect & Validate:** Open the generated `.yaml` file. The built-in JSON schema automatically lints all fields and highlights parameter errors.
+4. **Launch Training:** Click the CodeLens action `🚀 Launch Training via MCP` at the top of the YAML file.
+5. **Monitor Progress:** Open the **Celery Mission Control Dashboard** to watch epochs advance across the assigned GPU invokers.
+6. **Analyze Interpretability:** When training finishes, run `NeuralForge (Global): Open XAI Heatmaps & Explainability Explorer` to review Eigen-CAM heatmaps and Deletion AUC fidelity.
+7. **Export Checkpoint:** Use `NeuralForge (Global): Selectively Download Specific MLflow Artifact` to pull the optimized `best.pt` directly into your deployment repository.
+
+---
+
+## 📦 Building and Packaging
+
+To compile from source and package into a `.vsix` file:
 
 ```bash
-# 1. Compile production bundle with Webpack
+# 1. Install dependencies
+npm install
+
+# 2. Compile production bundle with Webpack
 npm run --prefix . package
 
-# 2. Package into .vsix archive
+# 3. Package into .vsix archive
 npx @vscode/vsce package --no-dependencies
 
-# 3. Install locally in Antigravity or VSCode
-antigravity --install-extension neuralforge-0.0.3.vsix --force
+# 4. Install in VSCode or Antigravity IDE
 code --install-extension neuralforge-0.0.3.vsix --force
+antigravity --install-extension neuralforge-0.0.3.vsix --force
 ```
 
 ---
 
-## 📜 License
+## 📜 License & Commercial Terms
 
-This project follows the dual-licensing structure of the **train_service2** ecosystem:
-- Open Source: AGPLv3 (see `LICENSE`)
-- Commercial: See `COMMERCIAL.md`
+This project is part of the **train_service2** ecosystem and operates under a dual-licensing model:
+- **Open Source:** AGPLv3 (see [`LICENSE`](LICENSE)). Any derivative work or hosted service modifying this software must disclose source code under AGPLv3.
+- **Commercial:** Enterprise deployments, closed-source integrations, and commercial licensing require an official commercial license. See [`COMMERCIAL.md`](COMMERCIAL.md) or contact the author.
 
 ---
 
-## 👤 Autor & Afiliación Oficial
+## 👤 Author & Official Affiliation
 
 * **William Steve Rodriguez Villamizar (Wisrovi)**
-* **Cargo:** Principal AI Engineer & Applied AI Solutions Architect | Scientific Researcher
+* **Role:** Principal AI Engineer & Applied AI Solutions Architect | Scientific Researcher
 * 📧 **Email:** [wisrovi.rodriguez@gmail.com](mailto:wisrovi.rodriguez@gmail.com)
-* 🌐 **Portal Oficial:** [wisrovi.dev](https://wisrovi.dev)
+* 🌐 **Official Portal:** [wisrovi.dev](https://wisrovi.dev)
 * 💼 **LinkedIn:** [wisrovi-rodriguez](https://www.linkedin.com/in/wisrovi-rodriguez/)
 * 🆔 **ORCID:** [0009-0005-0710-1861](https://orcid.org/0009-0005-0710-1861)
 * 📦 **PyPI:** [pypi.org/user/wisrovi/](https://pypi.org/user/wisrovi/)
