@@ -4,6 +4,7 @@ import * as path from 'path';
 import { ClusterApiClient } from './clusterApiClient';
 import { LogStreamer } from './logStreamer';
 import { openMetricsExplorer } from './metricsExplorer';
+import { validateTrainingPreflight, handlePreflightRejection } from './preflightValidator';
 
 export async function submitTrainingFromEditor(context: vscode.ExtensionContext, uri?: vscode.Uri) {
     let filePath = '';
@@ -37,6 +38,13 @@ export async function submitTrainingFromEditor(context: vscode.ExtensionContext,
         yamlContent = fs.readFileSync(filePath, 'utf-8');
     } catch (err: any) {
         vscode.window.showErrorMessage(`Failed to read YAML file: ${err.message}`);
+        return;
+    }
+
+    // Fail-Fast Pre-flight Validation: reject training on the fly if dataset or model is invalid
+    const preflight = await validateTrainingPreflight(filePath, yamlContent);
+    if (!preflight.valid) {
+        await handlePreflightRejection(preflight, filePath);
         return;
     }
 
