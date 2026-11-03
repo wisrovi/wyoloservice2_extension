@@ -4,6 +4,27 @@ All notable changes to the "neuralforge" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.9] - 2026-11-03
+### Added
+- **Interactive "Live YAML" (YAML Vivo) Workflow:**
+  - Standardized the workflow so the Studio Launcher generates pure, clean YAML descriptors and opens them directly in the editor for instant review.
+  - **Task CodeLens (`neuralforge.changeTaskStyle`):** In-editor interactive button over `task:` allowing one-click toggling between `detect`, `segment`, `classify`, `obb`, and `pose`, automatically re-synchronizing the target `fitness:` optimization metric.
+  - **Celery Priority Queue CodeLens (`neuralforge.changePriority`):** In-editor toggle over `priority:` to seamlessly cycle between `low` (default), `medium`, and `high` priority queues.
+  - **Fitness Metric CodeLens (`neuralforge.changeFitnessMetric`):** In-editor selector over `fitness:` to switch between official train_service2 evaluation objectives (`mAP50-95(B)`, `mAP50(M)`, `accuracy_top1`, etc.).
+  - **Target Invoker IP CodeLens (`neuralforge.pickTargetWorkerNode`):** Direct selector over `debug:` to pick an online GPU invoker node from the live cluster.
+  - **Clean & Standardized Search Space:** Generated `search_space:` with multi-capacity model alternatives (`n`, `s`, `m`), image sizes (`640`, `768`, `1024`), and log-uniform learning rate `lr0` (`1e-4` to `1e-2`).
+
+### Changed
+- Removed duplicate "Start Training on Cluster" button and `Destination Invoker IP` input from Studio Launcher UI.
+- Stripped unnecessary parameters from the generated YAML descriptor (`batch`, `patience`, `single_cls`, `conf`, `iou`, `box`, `cos_lr`, `fliplr`, `flipud`).
+
+## [0.0.8] - 2026-11-03
+### Added
+- **Multi-Generation Model Architecture Selection:** Studio Launcher now supports selecting model generations: **YOLO26**, **YOLO11**, **YOLOv10**, **YOLOv9**, **YOLOv8**, **RT-DETR**, or custom model checkpoints with dynamic capacity scaling (`Nano`, `Small`, `Medium`, `Large`, `X-Large`).
+- **Fully Adjustable Training Hyperparameters:** Numerical and configurable inputs for epochs (with 5/50/100/300 presets), batch size (including auto-batch `-1`), image size (`640`/`1280`), optimizers (`auto`, `AdamW`, `SGD`, `RMSprop`), and initial learning rate (`lr0`).
+- **In-Editor Target Worker Switching CodeLens (`neuralforge.pickTargetWorkerNode`):** Direct CodeLens on YAML headers, `debug: true`, and `target_worker:` lines that triggers an interactive QuickPick querying online GPU invoker nodes from the live cluster and dynamically rewrites the destination worker node in the YAML file.
+- **YAML-Centric Review Workflow:** Made `Generate YAML & Open in Editor (Review & Launch)` the primary action in the Studio, allowing practitioners to inspect and tweak the descriptor before dispatching via in-editor CodeLens.
+
 ## [0.0.7] - 2026-11-03
 ### Added
 - **Dynamic CV Task Type Selector:** Added support to choose between Object Detection (`detect`), Instance Segmentation (`segment`), Image Classification (`classify`), Oriented Bounding Boxes (`obb`), and Pose Estimation (`pose`), dynamically recomputing official model architecture names and suffixes (`yolo26n-seg.pt`, `yolo26n-cls.pt`, `yolo26n-obb.pt`, `yolo26n-pose.pt`).
