@@ -25,7 +25,7 @@ export class LogStreamer {
     public async startStreaming(studyId?: string) {
         if (!studyId) {
             const input = await vscode.window.showInputBox({
-                prompt: 'Enter the Study ID to tail live logs (e.g. Test_AREPO_ProtSup_v3)',
+                prompt: 'Enter the Study ID to tail live logs (e.g. study_detect_electronic_v1)',
                 placeHolder: 'Study ID...'
             });
             if (!input) {
