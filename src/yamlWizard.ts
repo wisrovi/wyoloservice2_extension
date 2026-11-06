@@ -65,7 +65,7 @@ metadata:
     }
 
     const timeBlock = (data.time && Number(data.time) > 0) ? `\n  time: ${Number(data.time)}` : '';
-    const targetWorkerBlock = data.targetWorker ? `\n  target_worker_queue: "${data.targetWorker}"\n  debug: "${data.targetWorker}"` : '';
+    const targetWorkerBlock = data.targetWorker ? `\n  debug: "${data.targetWorker}"` : '';
     const startAtBlock = data.startAt ? `\nstart_at: "${data.startAt}"` : '';
 
     return `model: "${data.model || 'yolo26n.pt'}"
